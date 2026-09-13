@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
@@ -50,6 +50,31 @@ jobs:
           name: QuranPro-release-apk
           path: app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: warn
+
+      - name: Publish GitHub Release with APKs
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk QuranPro-v1.0-debug.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk QuranPro-v1.0-release-unsigned.apk || true
+          gh release delete quranpro-v1.0 --yes 2>/dev/null || true
+          git push origin :quranpro-v1.0 2>/dev/null || true
+          git tag -f quranpro-v1.0
+          git push origin quranpro-v1.0
+          gh release create quranpro-v1.0 QuranPro-v1.0-debug.apk QuranPro-v1.0-release-unsigned.apk \
+            --title "QuranPro v1.0 - القرآن الكريم صوت وصورة" \
+            --notes "النسخة الأولى من تطبيق القرآن الكريم: استماع ومشاهدة وقراءة بأصوات أكثر من 150 قارئا. الملف الموصى بالتثبيت: QuranPro-v1.0-debug.apk (موقّع وجاهز للتثبيت)."
+
+      - name: Commit installable APK to branch
+        if: success()
+        run: |
+          git config user.name "arena-bot"
+          git config user.email "arena-bot@users.noreply.github.com"
+          cp QuranPro-v1.0-debug.apk QuranPro-v1.0.apk
+          git add -f QuranPro-v1.0.apk
+          git commit -m "QuranPro v1.0 APK [skip ci]" || echo "no changes"
+          git push origin HEAD:arena/01a09c01-convertpro || true
 
       - name: Report failure log
         if: failure()
