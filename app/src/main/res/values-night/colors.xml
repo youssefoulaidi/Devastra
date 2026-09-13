@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand">#2FBF8F</color>
+    <color name="brand_dark">#0B7A55</color>
+    <color name="brand_light">#123528</color>
+    <color name="gold">#E3C566</color>
+    <color name="gold_light">#3A3320</color>
+    <color name="bg">#0A1512</color>
+    <color name="surface">#12231D</color>
+    <color name="on_surface">#E8F1EC</color>
+    <color name="muted">#93A89D</color>
+    <color name="divider">#1E332B</color>
+    <color name="badge_bg">#14332A</color>
+    <color name="live_red">#EF5350</color>
+    <color name="white">#FFFFFF</color>
+    <color name="splash_bg">#0A3D2C</color>
+    <color name="ic_launcher_bg">#0A3D2C</color>
+</resources>

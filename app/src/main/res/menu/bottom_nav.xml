@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_surahs"
+        android:icon="@drawable/ic_surah"
+        android:title="@string/tab_surahs" />
+    <item
+        android:id="@+id/nav_reciters"
+        android:icon="@drawable/ic_reciter"
+        android:title="@string/tab_reciters" />
+    <item
+        android:id="@+id/nav_video"
+        android:icon="@drawable/ic_video"
+        android:title="@string/tab_video" />
+    <item
+        android:id="@+id/nav_broadcast"
+        android:icon="@drawable/ic_live"
+        android:title="@string/tab_broadcast" />
+    <item
+        android:id="@+id/nav_library"
+        android:icon="@drawable/ic_library"
+        android:title="@string/tab_library" />
+</menu>

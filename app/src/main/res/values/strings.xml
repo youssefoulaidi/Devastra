@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">QuranPro القرآن الكريم</string>
+    <string name="app_short">QuranPro</string>
+    <string name="tagline">استمع وشاهد واقرأ القرآن الكريم بأصوات نخبة القرّاء</string>
+
+    <!-- Tabs -->
+    <string name="tab_surahs">السور</string>
+    <string name="tab_reciters">القرّاء</string>
+    <string name="tab_video">فيديو</string>
+    <string name="tab_broadcast">البث</string>
+    <string name="tab_library">مكتبتي</string>
+
+    <!-- Drawer -->
+    <string name="menu_home">الرئيسية</string>
+    <string name="menu_surahs">سور القرآن</string>
+    <string name="menu_reciters">القرّاء</string>
+    <string name="menu_read">القراءة (نص المصحف)</string>
+    <string name="menu_tafsir">التفسير الصوتي</string>
+    <string name="menu_video">التلاوات المرئية</string>
+    <string name="menu_live">البث المباشر (مكة والمدينة)</string>
+    <string name="menu_radio">الإذاعات</string>
+    <string name="menu_downloads">التحميلات</string>
+    <string name="menu_favorites">المفضلة</string>
+    <string name="menu_settings">الإعدادات</string>
+    <string name="menu_share">مشاركة التطبيق</string>
+    <string name="menu_rate">قيّم التطبيق</string>
+    <string name="menu_about">من نحن</string>
+    <string name="menu_privacy">سياسة الخصوصية</string>
+
+    <!-- Home / surahs -->
+    <string name="search_surahs">ابحث باسم السورة أو رقمها…</string>
+    <string name="search_reciters">ابحث باسم القارئ…</string>
+    <string name="search_radio">ابحث باسم الإذاعة…</string>
+    <string name="current_reciter">القارئ الحالي</string>
+    <string name="change_reciter">تغيير القارئ</string>
+    <string name="choose_reciter">اختر القارئ والرواية</string>
+    <string name="choose_moshaf">اختر المصحف / الرواية</string>
+    <string name="all_riwayat">كل الروايات</string>
+    <string name="makkia">مكية</string>
+    <string name="madania">مدنية</string>
+    <string name="ayat_count">%1$d آية</string>
+    <string name="surah_meta">%1$d آية • %2$s</string>
+    <string name="moshaf_count">%1$d مصاحف</string>
+    <string name="surah_number">سورة رقم %1$d</string>
+    <string name="resume_listening">مواصلة الاستماع</string>
+    <string name="resume_hint">آخر ما استمعت إليه</string>
+    <string name="no_resume">ابدأ الاستماع لأي سورة وستظهر هنا</string>
+
+    <!-- Player -->
+    <string name="now_playing">يُشغَّل الآن</string>
+    <string name="play">تشغيل</string>
+    <string name="pause">إيقاف مؤقت</string>
+    <string name="next">التالي</string>
+    <string name="prev">السابق</string>
+    <string name="repeat_off">بدون تكرار</string>
+    <string name="repeat_one">تكرار السورة</string>
+    <string name="speed">السرعة</string>
+    <string name="sleep">مؤقت النوم</string>
+    <string name="sleep_off">إيقاف المؤقت</string>
+    <string name="sleep_minutes">بعد %1$d دقيقة</string>
+    <string name="sleep_set">سيتوقف التشغيل بعد %1$d دقيقة</string>
+    <string name="sleep_cancelled">تم إلغاء مؤقت النوم</string>
+    <string name="download">تحميل</string>
+    <string name="downloading">جارٍ التحميل…</string>
+    <string name="downloaded">تم التحميل — متاح دون إنترنت</string>
+    <string name="fav_add">إضافة للمفضلة</string>
+    <string name="fav_remove">إزالة من المفضلة</string>
+    <string name="fav_added">أُضيفت إلى المفضلة</string>
+    <string name="fav_removed">أُزيلت من المفضلة</string>
+    <string name="share">مشاركة</string>
+    <string name="read_text">قراءة النص</string>
+    <string name="follow_ayat">متابعة الآيات</string>
+    <string name="follow_on">متابعة الآيات: مفعّلة</string>
+    <string name="follow_off">متابعة الآيات: متوقفة</string>
+    <string name="timing_unavailable">المتابعة الآية بآية غير متاحة لهذه التلاوة</string>
+    <string name="open_full_player">فتح المشغّل</string>
+
+    <!-- Surah options -->
+    <string name="opt_play">تشغيل السورة</string>
+    <string name="opt_read">قراءة النص</string>
+    <string name="opt_download">تحميل للاستماع دون إنترنت</string>
+    <string name="opt_fav">إضافة للمفضلة</string>
+    <string name="opt_share">مشاركة رابط التلاوة</string>
+    <string name="opt_reciter">تشغيل بقارئ آخر</string>
+    <string name="surah_not_in_moshaf">هذه السورة غير متوفرة عند القارئ الحالي — اختر قارئًا آخر</string>
+    <string name="link_copied">تم نسخ رابط التلاوة</string>
+
+    <!-- Video / live / radio -->
+    <string name="videos_title">التلاوات المرئية</string>
+    <string name="videos_empty">لا توجد فيديوهات حاليًا</string>
+    <string name="live_title">البث المباشر</string>
+    <string name="live_badge">مباشر</string>
+    <string name="radio_title">إذاعات القرآن الكريم</string>
+    <string name="radio_playing">إذاعة</string>
+    <string name="fullscreen">ملء الشاشة</string>
+
+    <!-- Tafsir -->
+    <string name="tafsir_title">التفسير الصوتي</string>
+    <string name="tafsir_choose">اختر التفسير</string>
+    <string name="tafsir_choose_surah">اختر السورة للاستماع لتفسيرها</string>
+
+    <!-- Library -->
+    <string name="lib_downloads">التحميلات</string>
+    <string name="lib_favs">المفضلة</string>
+    <string name="lib_empty_downloads">لا توجد تحميلات بعد — حمّل السور للاستماع دون إنترنت</string>
+    <string name="lib_empty_favs">لا توجد عناصر في المفضلة بعد</string>
+    <string name="delete">حذف</string>
+    <string name="deleted">تم الحذف</string>
+    <string name="offline_badge">دون إنترنت</string>
+
+    <!-- Read -->
+    <string name="read_title">سورة %1$s</string>
+    <string name="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</string>
+    <string name="juz">الجزء %1$d</string>
+    <string name="page">صفحة %1$d</string>
+    <string name="text_size">حجم الخط</string>
+
+    <!-- Settings -->
+    <string name="settings">الإعدادات</string>
+    <string name="theme">المظهر</string>
+    <string name="theme_system">تلقائي (حسب النظام)</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="autoplay_next">تشغيل السورة التالية تلقائيًا</string>
+    <string name="clear_cache">مسح البيانات المؤقتة</string>
+    <string name="cache_cleared">تم مسح البيانات المؤقتة</string>
+    <string name="about_title">من نحن</string>
+    <string name="privacy_title">سياسة الخصوصية</string>
+    <string name="version">الإصدار %1$s</string>
+    <string name="sources_title">مصادر الصوت والصورة والنص</string>
+
+    <!-- Generic -->
+    <string name="loading">جارٍ التحميل…</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="error_network">تعذّر الاتصال بالإنترنت — تحقق من الاتصال وحاول مجددًا</string>
+    <string name="error_generic">حدث خطأ — حاول مجددًا</string>
+    <string name="no_results">لا توجد نتائج مطابقة</string>
+    <string name="cancel">إلغاء</string>
+    <string name="ok">حسنًا</string>
+    <string name="close">إغلاق</string>
+    <string name="yes">نعم</string>
+    <string name="share_app_text">حمّل تطبيق QuranPro للقرآن الكريم صوتًا وصورةً وتلاوةً بأصوات نخبة القرّاء</string>
+    <string name="notif_channel">تشغيل القرآن</string>
+</resources>
