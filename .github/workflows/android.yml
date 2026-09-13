@@ -5,6 +5,10 @@ on:
     branches: ["arena/01a09c01-convertpro"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,7 +29,10 @@ jobs:
           packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
 
       - name: Build debug APK
-        run: chmod +x gradlew && ./gradlew assembleDebug --stacktrace
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace 2>&1 | tee gradle-debug.log
+          test ${PIPESTATUS[0]} -eq 0
 
       - name: Build release APK (unsigned unless keystore.properties exists)
         run: ./gradlew assembleRelease --stacktrace
@@ -43,3 +50,12 @@ jobs:
           name: QuranPro-release-apk
           path: app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: warn
+
+      - name: Report failure log
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { echo '```'; tail -c 55000 gradle-debug.log; echo '```'; } > tail.txt
+          PR=$(gh pr list --head arena/01a09c01-convertpro --json number --jq '.[0].number')
+          gh pr comment "$PR" --body-file tail.txt || true
