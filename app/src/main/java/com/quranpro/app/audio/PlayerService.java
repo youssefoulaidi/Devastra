@@ -88,10 +88,12 @@ public class PlayerService extends MediaSessionService {
                 .setSessionActivity(pi)
                 .build();
 
-        setMediaNotificationProvider(new DefaultMediaNotificationProvider.Builder(this)
-                .setChannelName(R.string.notif_channel)
-                .setSmallIcon(R.drawable.ic_stat_quran)
-                .build());
+        DefaultMediaNotificationProvider notificationProvider =
+                new DefaultMediaNotificationProvider.Builder(this)
+                        .setChannelName(R.string.notif_channel)
+                        .build();
+        notificationProvider.setSmallIcon(R.drawable.ic_stat_quran);
+        setMediaNotificationProvider(notificationProvider);
     }
 
     @Nullable
