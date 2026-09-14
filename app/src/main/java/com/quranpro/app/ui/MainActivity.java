@@ -162,6 +162,13 @@ public class MainActivity extends AppCompatActivity {
         else if (id == R.id.d_share) Ui.shareText(this, getString(R.string.share_app_text));
         else if (id == R.id.d_rate) rateApp();
         else if (id == R.id.d_about) InfoActivity.open(this, InfoActivity.PAGE_ABOUT);
+        else if (id == R.id.d_privacy) InfoActivity.open(this, InfoActivity.PAGE_PRIVACY);
+        else if (id == R.id.d_sources) InfoActivity.open(this, InfoActivity.PAGE_SOURCES);
+        else if (id == R.id.d_prayer_times) startActivity(new Intent(this, PrayerTimesActivity.class));
+        else if (id == R.id.d_qibla) startActivity(new Intent(this, QiblaActivity.class));
+        else if (id == R.id.d_contact) startActivity(new Intent(this, ContactActivity.class));
+        else if (id == R.id.d_follow) startActivity(new Intent(this, FollowUsActivity.class));
+        else if (id == R.id.d_support) startActivity(new Intent(this, SupportActivity.class));
         return true;
     }
 

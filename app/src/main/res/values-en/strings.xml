@@ -131,4 +131,110 @@
     <string name="yes">Yes</string>
     <string name="share_app_text">Get QuranPro app for the Holy Quran — audio, video and recitation with top reciters</string>
     <string name="notif_channel">Quran playback</string>
+
+    <!-- Drawer: new pages -->
+    <string name="grp_worship">Worship</string>
+    <string name="grp_about_app">About the app</string>
+    <string name="menu_prayer_times">Prayer times &amp; adhan</string>
+    <string name="menu_qibla">Qibla direction</string>
+    <string name="menu_contact">Contact us</string>
+    <string name="menu_follow">Follow us</string>
+    <string name="menu_support">Support us</string>
+
+    <!-- Contact -->
+    <string name="contact_title">Contact us</string>
+    <string name="contact_intro">We would love to hear from you! Write your feedback, question or idea and it will reach the dev team directly by email — we reply as soon as possible, in sha Allah.</string>
+    <string name="contact_name">Your name</string>
+    <string name="contact_email">Your email (optional — for a faster reply)</string>
+    <string name="contact_subject">Subject</string>
+    <string name="contact_msg">Your message</string>
+    <string name="contact_send">Send message</string>
+    <string name="contact_err">Please write your message first</string>
+    <string name="contact_no_mail">No mail app found on this device to send the message</string>
+    <string name="contact_done">Message prepared — send it from your mail app</string>
+
+    <!-- Follow -->
+    <string name="follow_title">Follow us</string>
+    <string name="follow_intro">Follow the app &amp; developer accounts to get every update:</string>
+    <string name="follow_facebook">Facebook</string>
+    <string name="follow_instagram">Instagram</string>
+    <string name="follow_linktree">Linktree — all links</string>
+    <string name="follow_linkedin">LinkedIn</string>
+    <string name="follow_open">Open</string>
+    <string name="follow_err">Could not open the link — no suitable browser</string>
+    <string name="support_title">Support us</string>
+
+    <!-- Support -->
+    <string name="support_intro">QuranPro is fully free and ad-free, built with personal effort. Your support keeps it alive and free for everyone. May Allah reward you.</string>
+    <string name="support_paypal">Support via PayPal</string>
+    <string name="support_paypal_sub">One-time or monthly donation</string>
+    <string name="support_ads">Watch an ad</string>
+    <string name="support_ads_sub">Temporary: opens my Linktree page instead of an ad</string>
+    <string name="support_thanks">Thank you for your support 🌿</string>
+    <string name="support_err">Could not open the link — check your browser/connection</string>
+
+    <!-- About / developer -->
+    <string name="dev_badge_title">YSAH-DEV</string>
+    <string name="dev_badge_sub">Design &amp; development</string>
+
+    <!-- Prayer times -->
+    <string name="pt_title">Prayer times</string>
+    <string name="pt_fajr">Fajr</string>
+    <string name="pt_sunrise">Sunrise</string>
+    <string name="pt_dhuhr">Dhuhr</string>
+    <string name="pt_asr">Asr</string>
+    <string name="pt_maghrib">Maghrib</string>
+    <string name="pt_isha">Isha</string>
+    <string name="pt_next_prayer">Next prayer: %1$s</string>
+    <string name="pt_in">in %1$s</string>
+    <string name="pt_now">It is %1$s time now</string>
+    <string name="pt_location">Location</string>
+    <string name="pt_not_set">Not set — tap to choose</string>
+    <string name="pt_method">Calculation method</string>
+    <string name="pt_refresh">Refresh times</string>
+    <string name="pt_adhan_btn">Muezzin settings</string>
+    <string name="pt_loaded">Prayer times updated ✓</string>
+    <string name="pt_hijri_date">%1$s AH • %2$s</string>
+    <string name="pt_gps">Use my location (GPS)</string>
+    <string name="pt_pick_city">Pick your city</string>
+    <string name="pt_manual">Enter coordinates manually</string>
+    <string name="pt_lat">Latitude</string>
+    <string name="pt_lon">Longitude</string>
+    <string name="pt_city_name">City name</string>
+    <string name="pt_save">Save</string>
+    <string name="pt_wait_gps">Getting your location…</string>
+    <string name="pt_gps_fail">Could not get your location — try manual or pick a city</string>
+    <string name="pt_gps_perm">Location permission is needed to show accurate prayer times</string>
+
+    <!-- Adhan settings -->
+    <string name="adhan_title">Muezzin settings</string>
+    <string name="adhan_enable_master">Enable adhan alerts</string>
+    <string name="adhan_muezzin">Muezzin voice</string>
+    <string name="adhan_notifications_only">Notification only (silent)</string>
+    <string name="adhan_each_title">Adhan per prayer</string>
+    <string name="adhan_pre">Pre-adhan alert (minutes)</string>
+    <string name="adhan_pre_off">None</string>
+    <string name="adhan_minutes">%1$s min</string>
+    <string name="adhan_autostop">Auto-stop adhan (minutes)</string>
+    <string name="adhan_vibrate">Vibrate with notification</string>
+    <string name="adhan_test">Test voice</string>
+    <string name="adhan_stop_now">Stop</string>
+    <string name="adhan_notif_title">It is time for %1$s prayer</string>
+    <string name="adhan_notif_text">%1$s adhan — QuranPro</string>
+    <string name="adhan_channel_name">Adhan alerts</string>
+    <string name="adhan_alarm_silent">To alert exactly on time, allow «Alarms &amp; reminders» for this app in system settings, then come back.</string>
+    <string name="adhan_open_settings">Open settings</string>
+    <string name="adhan_playing">Playing adhan…</string>
+
+    <!-- Qibla -->
+    <string name="qibla_title">Qibla direction</string>
+    <string name="qibla_hint">Move your device in a figure-∞ to calibrate, then turn until the Kaaba mark meets the top of the dial.</string>
+    <string name="qibla_bearing">Qibla bearing: %1$s° from north</string>
+    <string name="qibla_distance">Distance to the Kaaba: %1$s km</string>
+    <string name="qibla_aligned">You are facing the Qibla ✓</string>
+    <string name="qibla_turn_right">Turn right</string>
+    <string name="qibla_turn_left">Turn left</string>
+    <string name="qibla_need_location">Set your location first to show the Qibla</string>
+    <string name="qibla_no_sensor">No compass sensor on this device — bearing shown is calculated from your location</string>
+    <string name="qibla_device_heading">Device heading: %1$s°</string>
 </resources>

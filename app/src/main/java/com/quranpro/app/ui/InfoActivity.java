@@ -53,6 +53,13 @@ public class InfoActivity extends AppCompatActivity {
         findViewById(R.id.btn_alquran).setOnClickListener(v ->
                 Ui.openUrl(this, "https://alquran.cloud"));
         findViewById(R.id.links).setVisibility(page == PAGE_ABOUT ? View.VISIBLE : View.GONE);
+
+        // YSAH-DEV developer badge — About page only; opens the dev's profile.
+        int vis = page == PAGE_ABOUT ? View.VISIBLE : View.GONE;
+        findViewById(R.id.dev_card).setVisibility(vis);
+        findViewById(R.id.dev_sub).setVisibility(vis);
+        findViewById(R.id.dev_card).setOnClickListener(v ->
+                Ui.openUrl(this, FollowUsActivity.LT));
     }
 
     private String aboutAr() {

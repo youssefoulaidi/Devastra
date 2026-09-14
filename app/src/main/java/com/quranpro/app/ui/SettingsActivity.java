@@ -71,7 +71,7 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.row_about).setOnClickListener(v ->
                 InfoActivity.open(this, InfoActivity.PAGE_ABOUT));
 
-        String ver = "1.0";
+        String ver = "1.1";
         try {
             ver = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
         } catch (Exception ignored) {}
