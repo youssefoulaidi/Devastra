@@ -92,21 +92,21 @@ public final class PlacePicker {
                 (int) (20 * density), 0);
 
         final TextInputLayout l1 = new TextInputLayout(a);
-        final TextInputEditText e1 = new TextInputEditText(l1);
+        final TextInputEditText e1 = new TextInputEditText(a);
         e1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL
                 | InputType.TYPE_NUMBER_FLAG_SIGNED);
         l1.setHint(a.getString(R.string.pt_lat));
         l1.addView(e1);
 
         final TextInputLayout l2 = new TextInputLayout(a);
-        final TextInputEditText e2 = new TextInputEditText(l2);
+        final TextInputEditText e2 = new TextInputEditText(a);
         e2.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL
                 | InputType.TYPE_NUMBER_FLAG_SIGNED);
         l2.setHint(a.getString(R.string.pt_lon));
         l2.addView(e2);
 
         final TextInputLayout l3 = new TextInputLayout(a);
-        final TextInputEditText e3 = new TextInputEditText(l3);
+        final TextInputEditText e3 = new TextInputEditText(a);
         l3.setHint(a.getString(R.string.pt_city_name));
         l3.addView(e3);
 

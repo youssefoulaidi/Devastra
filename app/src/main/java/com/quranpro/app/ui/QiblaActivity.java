@@ -29,8 +29,8 @@ public class QiblaActivity extends AppCompatActivity implements SensorEventListe
 
     private SensorManager sm;
     private Sensor rotSensor, accSensor, magSensor;
-    private final float[] R = new float[9];
-    private final float[] R2 = new float[9];
+    private final float[] rotM = new float[9];
+    private final float[] tmpM = new float[9];
     private final float[] I = new float[9];
     private final float[] ori = new float[3];
     private float[] acc, mag;
@@ -141,9 +141,9 @@ public class QiblaActivity extends AppCompatActivity implements SensorEventListe
     public void onSensorChanged(SensorEvent event) {
         int type = event.sensor.getType();
         if (type == Sensor.TYPE_ROTATION_VECTOR) {
-            SensorManager.getRotationMatrixFromVector(R, event.values);
+            SensorManager.getRotationMatrixFromVector(rotM, event.values);
             applyDisplayRemap();
-            SensorManager.getOrientation(R, ori);
+            SensorManager.getOrientation(rotM, ori);
             updateHeading(ori[0]);
         } else if (type == Sensor.TYPE_ACCELEROMETER) {
             if (acc == null) acc = new float[3];
@@ -160,9 +160,9 @@ public class QiblaActivity extends AppCompatActivity implements SensorEventListe
 
     private void fuseAccMag() {
         if (rotSensor != null || !hasAcc || !hasMag) return;
-        if (SensorManager.getRotationMatrix(R, I, acc, mag)) {
+        if (SensorManager.getRotationMatrix(rotM, I, acc, mag)) {
             applyDisplayRemap();
-            SensorManager.getOrientation(R, ori);
+            SensorManager.getOrientation(rotM, ori);
             updateHeading(ori[0]);
         }
     }
@@ -172,17 +172,17 @@ public class QiblaActivity extends AppCompatActivity implements SensorEventListe
         int rot = getWindowManager().getDefaultDisplay().getRotation();
         boolean swapped = false;
         if (rot == Surface.ROTATION_90) {
-            swapped = SensorManager.remapCoordinateSystem(R,
-                    SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, R2);
+            swapped = SensorManager.remapCoordinateSystem(rotM,
+                    SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, tmpM);
         } else if (rot == Surface.ROTATION_270) {
-            swapped = SensorManager.remapCoordinateSystem(R,
-                    SensorManager.AXIS_MINUS_Y, SensorManager.AXIS_X, R2);
+            swapped = SensorManager.remapCoordinateSystem(rotM,
+                    SensorManager.AXIS_MINUS_Y, SensorManager.AXIS_X, tmpM);
         } else if (rot == Surface.ROTATION_180) {
-            swapped = SensorManager.remapCoordinateSystem(R,
-                    SensorManager.AXIS_MINUS_X, SensorManager.AXIS_MINUS_Y, R2);
+            swapped = SensorManager.remapCoordinateSystem(rotM,
+                    SensorManager.AXIS_MINUS_X, SensorManager.AXIS_MINUS_Y, tmpM);
         }
         if (swapped) {
-            for (int i = 0; i < 9; i++) R[i] = R2[i];
+            for (int i = 0; i < 9; i++) rotM[i] = tmpM[i];
         }
     }
 
