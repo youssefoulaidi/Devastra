@@ -1,0 +1,7 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <!-- Kaaba cube -->
+    <path android:fillColor="#FF000000"
+        android:pathData="M12,2L4.5,5.5V17L12,21l7.5,-4V5.5L12,2zM12,4.1l5.2,2.4 -5.2,2.3 -5.2,-2.3L12,4.1zM6.5,7.8l4.7,2.1v7.4l-4.7,-2.5V7.8zM17.5,7.8v7l-4.7,2.5V9.9l4.7,-2.1z" />
+</vector>

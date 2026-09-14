@@ -142,4 +142,110 @@
     <string name="yes">نعم</string>
     <string name="share_app_text">حمّل تطبيق QuranPro للقرآن الكريم صوتًا وصورةً وتلاوةً بأصوات نخبة القرّاء</string>
     <string name="notif_channel">تشغيل القرآن</string>
+
+    <!-- Drawer: new pages -->
+    <string name="grp_worship">العبادات</string>
+    <string name="grp_about_app">عن التطبيق</string>
+    <string name="menu_prayer_times">مواقيت الصلاة والأذان</string>
+    <string name="menu_qibla">اتجاه القبلة</string>
+    <string name="menu_contact">اتصل بنا</string>
+    <string name="menu_follow">تابعنا</string>
+    <string name="menu_support">ادعمنا</string>
+
+    <!-- Contact -->
+    <string name="contact_title">اتصل بنا</string>
+    <string name="contact_intro">يسعدنا سماع رأيك! اكتب ملاحظتك أو استفسارك أو اقتراحك وسيصل مباشرةً إلى فريق التطوير عبر البريد الإلكتروني، ونرد عليك في أقرب وقت إن شاء الله.</string>
+    <string name="contact_name">اسمك الكريم</string>
+    <string name="contact_email">بريدك الإلكتروني (اختياري — لردٍّ أسرع)</string>
+    <string name="contact_subject">الموضوع</string>
+    <string name="contact_msg">رسالتك</string>
+    <string name="contact_send">إرسال الرسالة</string>
+    <string name="contact_err">يرجى كتابة رسالتك أولًا</string>
+    <string name="contact_no_mail">لا يوجد تطبيق بريد على جهازك لإرسال الرسالة</string>
+    <string name="contact_done">تم تجهيز رسالتك — أرسلها من تطبيق البريد</string>
+
+    <!-- Follow -->
+    <string name="follow_title">تابعنا</string>
+    <string name="follow_intro">تابع حسابات التطبيق والمطور على منصات التواصل ليصلك كل جديد:</string>
+    <string name="follow_facebook">فيسبوك</string>
+    <string name="follow_instagram">إنستغرام</string>
+    <string name="follow_linktree">لينكتري — كل الروابط</string>
+    <string name="follow_linkedin">لينكدإن</string>
+    <string name="follow_open">فتح</string>
+    <string name="follow_err">تعذّر فتح الرابط — لا يوجد متصفح مناسب</string>
+
+    <!-- Support -->
+    <string name="support_title">ادعمنا</string>
+    <string name="support_intro">تطبيق QuranPro مجاني بالكامل وبدون إعلانات، ويُطوَّر بجهدي الشخصي. دعمك يساعدنا على الاستمرار والتطوير وإبقاء التطبيق مجانًا للجميع. جزاك الله خيرًا.</string>
+    <string name="support_paypal">ادعمنا عبر PayPal</string>
+    <string name="support_paypal_sub">تبرّع لمرة واحدة أو بشكل شهري</string>
+    <string name="support_ads">شاهد إعلانًا</string>
+    <string name="support_ads_sub">مؤقتًا: يفتح صفحة حسابي على Linktree بدل الإعلان</string>
+    <string name="support_thanks">شكرًا لدعمك ولطيب خاطرك 🌿</string>
+    <string name="support_err">تعذّر فتح الرابط — تحقق من اتصالك أو متصفحك</string>
+
+    <!-- About / developer -->
+    <string name="dev_badge_title">YSAH-DEV</string>
+    <string name="dev_badge_sub">تصميم وتطوير</string>
+
+    <!-- Prayer times -->
+    <string name="pt_title">مواقيت الصلاة</string>
+    <string name="pt_fajr">الفجر</string>
+    <string name="pt_sunrise">الشروق</string>
+    <string name="pt_dhuhr">الظهر</string>
+    <string name="pt_asr">العصر</string>
+    <string name="pt_maghrib">المغرب</string>
+    <string name="pt_isha">العشاء</string>
+    <string name="pt_next_prayer">الصلاة القادمة: %1$s</string>
+    <string name="pt_in">بعد %1$s</string>
+    <string name="pt_now">حان وقت %1$s الآن</string>
+    <string name="pt_location">الموقع</string>
+    <string name="pt_not_set">غير محدد — اضغط للاختيار</string>
+    <string name="pt_method">طريقة الحساب</string>
+    <string name="pt_refresh">تحديث المواقيت</string>
+    <string name="pt_adhan_btn">إعدادات المؤذن</string>
+    <string name="pt_loaded">تم تحديث المواقيت ✓</string>
+    <string name="pt_hijri_date">%1$s هـ • %2$s</string>
+    <string name="pt_gps">تحديد بالموقع (GPS)</string>
+    <string name="pt_pick_city">اختر مدينتك</string>
+    <string name="pt_manual">إدخال الإحداثيات يدويًا</string>
+    <string name="pt_lat">خط العرض</string>
+    <string name="pt_lon">خط الطول</string>
+    <string name="pt_city_name">اسم المدينة</string>
+    <string name="pt_save">حفظ</string>
+    <string name="pt_wait_gps">جارٍ تحديد موقعك…</string>
+    <string name="pt_gps_fail">تعذّر تحديد الموقع — جرّب يدويًا أو اختر مدينة</string>
+    <string name="pt_gps_perm">التطبيق يحتاج إذن الموقع لعرض مواقيت صلاتك بدقة</string>
+
+    <!-- Adhan settings -->
+    <string name="adhan_title">إعدادات المؤذن</string>
+    <string name="adhan_enable_master">تشغيل تنبيهات الأذان</string>
+    <string name="adhan_muezzin">صوت المؤذن</string>
+    <string name="adhan_notifications_only">إشعار بدون صوت</string>
+    <string name="adhan_each_title">الأذان لكل صلاة</string>
+    <string name="adhan_pre">تنبيه قبل الأذان (دقائق)</string>
+    <string name="adhan_pre_off">بدون</string>
+    <string name="adhan_minutes">%1$s دقيقة</string>
+    <string name="adhan_autostop">إيقاف الأذان تلقائيًا (بالدقائق)</string>
+    <string name="adhan_vibrate">اهتزاز مع الإشعار</string>
+    <string name="adhan_test">تجربة الصوت</string>
+    <string name="adhan_stop_now">إيقاف</string>
+    <string name="adhan_notif_title">حان الآن وقت صلاة %1$s</string>
+    <string name="adhan_notif_text">أذان %1$s — QuranPro</string>
+    <string name="adhan_channel_name">تنبيهات الأذان</string>
+    <string name="adhan_alarm_silent">للسماح بالتنبيه في الوقت المحدد تمامًا، فعّل «الإعدادات الدقيقة» للتطبيق من إعدادات النظام ثم عد.</string>
+    <string name="adhan_open_settings">فتح الإعدادات</string>
+    <string name="adhan_playing">يُرفع الأذان الآن…</string>
+
+    <!-- Qibla -->
+    <string name="qibla_title">اتجاه القبلة</string>
+    <string name="qibla_hint">حرّك جهازك على شكل ∞ لمعايرة البوصلة، ثم استدر حتى تتطابق علامة الكعبة مع أعلى الدائرة.</string>
+    <string name="qibla_bearing">اتجاه القبلة: %1$s° من الشمال</string>
+    <string name="qibla_distance">المسافة إلى الكعبة: %1$s كم</string>
+    <string name="qibla_aligned">أنت الآن بمحاذاة القبلة ✓</string>
+    <string name="qibla_turn_right">استدر يمينًا</string>
+    <string name="qibla_turn_left">استدر يسارًا</string>
+    <string name="qibla_need_location">حدّد موقعك أولًا لعرض اتجاه القبلة</string>
+    <string name="qibla_no_sensor">جهازك لا يملك مستشعر اتجاه — الاتجاه المعروض محسوب من موقعك</string>
+    <string name="qibla_device_heading">اتجاه الجهاز: %1$s°</string>
 </resources>

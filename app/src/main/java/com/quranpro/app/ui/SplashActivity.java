@@ -15,6 +15,11 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+        // Keep prayer-times & adhan alarms fresh on every cold start (silent).
+        if (Store.adhanMaster(this)) {
+            com.quranpro.app.pray.AdhanReceiver.refreshTimes(this);
+        }
+
         // Default reciter (works offline via islamic.network CDN) on first launch.
         if (Store.getCurrent(this) == null) {
             StringBuilder all = new StringBuilder();

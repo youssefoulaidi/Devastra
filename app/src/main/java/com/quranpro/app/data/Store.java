@@ -226,6 +226,106 @@ public final class Store {
         saveDls(c, l);
     }
 
+    // ---------- prayer times & adhan ----------
+
+    public static void setLocation(Context c, double lat, double lon, String label) {
+        p(c).edit()
+                .putFloat("prLat", (float) lat)
+                .putFloat("prLon", (float) lon)
+                .putString("prLabel", label == null ? "" : label)
+                .apply();
+    }
+
+    public static double[] location(Context c) {
+        SharedPreferences sp = p(c);
+        if (!sp.contains("prLat") || !sp.contains("prLon")) return null;
+        return new double[]{sp.getFloat("prLat", 0f), sp.getFloat("prLon", 0f)};
+    }
+
+    public static String locationLabel(Context c) {
+        return p(c).getString("prLabel", "");
+    }
+
+    public static int prayerMethod(Context c) {
+        return p(c).getInt("prMethod", 3); // 3 = Muslim World League
+    }
+
+    public static void setPrayerMethod(Context c, int m) {
+        p(c).edit().putInt("prMethod", m).apply();
+    }
+
+    /** Cache of the last fetched timings response + the day it belongs to. */
+    public static String prTimesJson(Context c) {
+        return p(c).getString("prTimesJson", null);
+    }
+
+    public static String prTimesDate(Context c) {
+        return p(c).getString("prTimesDate", "");
+    }
+
+    public static void setPrTimes(Context c, String json, String ddMmYyyy) {
+        p(c).edit().putString("prTimesJson", json).putString("prTimesDate", ddMmYyyy).apply();
+    }
+
+    /** Master switch for all adhan alerts. */
+    public static boolean adhanMaster(Context c) {
+        return p(c).getBoolean("adhanMaster", false);
+    }
+
+    public static void setAdhanMaster(Context c, boolean v) {
+        p(c).edit().putBoolean("adhanMaster", v).apply();
+    }
+
+    public static boolean adhanOn(Context c, String key) {
+        return p(c).getBoolean("adhanOn." + key, true);
+    }
+
+    public static void setAdhanOn(Context c, String key, boolean v) {
+        p(c).edit().putBoolean("adhanOn." + key, v).apply();
+    }
+
+    /** -1 = silent notification, otherwise index in Muezzins list. */
+    public static int adhanVoice(Context c) {
+        return p(c).getInt("adhanVoice", 0);
+    }
+
+    public static void setAdhanVoice(Context c, int v) {
+        p(c).edit().putInt("adhanVoice", v).apply();
+    }
+
+    public static int adhanPreMin(Context c) {
+        return p(c).getInt("adhanPre", 0);
+    }
+
+    public static void setAdhanPreMin(Context c, int m) {
+        p(c).edit().putInt("adhanPre", m).apply();
+    }
+
+    public static int adhanStopMin(Context c) {
+        return p(c).getInt("adhanStop", 5);
+    }
+
+    public static void setAdhanStopMin(Context c, int m) {
+        p(c).edit().putInt("adhanStop", m).apply();
+    }
+
+    public static boolean adhanVibrate(Context c) {
+        return p(c).getBoolean("adhanVib", true);
+    }
+
+    public static void setAdhanVibrate(Context c, boolean v) {
+        p(c).edit().putBoolean("adhanVib", v).apply();
+    }
+
+    /** Last day we scheduled alarms for (DD-MM-YYYY) — avoids double-scheduling. */
+    public static String adhanScheduledDay(Context c) {
+        return p(c).getString("adhanSchedDay", "");
+    }
+
+    public static void setAdhanScheduledDay(Context c, String d) {
+        p(c).edit().putString("adhanSchedDay", d).apply();
+    }
+
     // ---------- last listen ----------
 
     public static void setLast(Context c, int surahId, String surahName,

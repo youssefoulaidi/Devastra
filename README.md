@@ -37,6 +37,9 @@ live TV, radios and audio tafsir — with **150+ reciters**.
 | 📡 البث المباشر | قناتا القرآن والسنة من مكة (HLS) + عشرات إذاعات القرآن |
 | 📚 التفسير الصوتي | اختر التفسير ثم السورة واستمع |
 | 💾 مكتبتي | تحميل السور للاستماع **دون إنترنت** + المفضلة |
+| 🕌 مواقيت وأذان | مواقيت الصلاة لمدينتك + إعداد المؤذن (أصوات، تنبيه مسبق، إيقاف تلقائي) |
+| 🧭 القبلة | بوصلة اتجاه القبلة مع المسافة إلى مكة والمعايرة الحيّة |
+|  صفحات التواصل | اتصل بنا (نموذج بريد) • تابعنا • ادعمنا (PayPal) • من نحن (YSAH-DEV) • سياسة الخصوصية |
 | 🎨 التصميم | مظهر أخضر زمردي وذهبي + وضع ليلي + عربي/إنجليزي (RTL) |
 
 ---
@@ -58,8 +61,9 @@ app/src/main/java/com/quranpro/app/
 ├── App.java                 # نقطة التطبيق
 ├── audio/                   # Media3: PlayerService, PlayerManager, Track
 ├── data/                    # Api, Models, QuranMeta, Store (SharedPreferences)
-├── ui/                      # Activities + Fragments (السور، القرّاء، الفيديو، البث، المكتبة…)
-└── util/                    # DownloadHelper, ImageLoader, Ui
+├── pray/                   # مواقيت الصلاة والأذان: جدولة التنبيهات، صوت المؤذن، الإشعارات
+├── ui/                     # Activities + Fragments (السور، القرّاء، الفيديو، البث، القبلة، المواقيت…)
+└── util/                   # DownloadHelper, ImageLoader, Ui
 app/src/main/assets/fonts/   # Amiri + Amiri Quran (الرسم العثماني)
 ```
 

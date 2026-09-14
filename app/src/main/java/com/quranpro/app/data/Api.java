@@ -42,6 +42,7 @@ public final class Api {
 
     public static final String MP3 = "https://mp3quran.net/api/v3";
     public static final String QCLOUD = "https://api.alquran.cloud/v1";
+    public static final String ADHAN_API = "https://api.aladhan.com/v1";
 
     private static final ExecutorService EX = Executors.newFixedThreadPool(4);
     private static final long HOUR = 3600_000L;
@@ -484,6 +485,31 @@ public final class Api {
                     out.add(t);
                 }
                 App.post(() -> cb.ok(out));
+            } catch (Exception e) {
+                App.post(() -> cb.err(e.getMessage()));
+            }
+        });
+    }
+
+    // ---------- prayer times (Aladhan — free, no key) ----------
+
+    /** Fetch one day of timings; ddMmYyyy may be null for today. Raw JSON string cached. */
+    public static void fetchPrayerTimes(final Context ctx, final double lat, final double lon,
+                                        final int method, final String ddMmYyyy,
+                                        final Cb<String> cb) {
+        final Context app = ctx.getApplicationContext();
+        EX.execute(() -> {
+            try {
+                String day = (ddMmYyyy == null || ddMmYyyy.isEmpty())
+                        ? new java.text.SimpleDateFormat("dd-MM-yyyy", Locale.US)
+                          .format(new java.util.Date())
+                        : ddMmYyyy;
+                String url = ADHAN_API + "/timings/" + day
+                        + "?latitude=" + lat + "&longitude=" + lon
+                        + "&method=" + method + "&iso8601=false";
+                String s = getSync(app, url, HOUR);
+                if (s == null || !s.contains("\"timings\"")) throw new IOException("bad payload");
+                App.post(() -> cb.ok(s));
             } catch (Exception e) {
                 App.post(() -> cb.err(e.getMessage()));
             }

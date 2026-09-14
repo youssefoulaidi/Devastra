@@ -16,4 +16,5 @@
     <color name="white">#FFFFFF</color>
     <color name="splash_bg">#0A3D2C</color>
     <color name="ic_launcher_bg">#0A3D2C</color>
+    <color name="ic_dev_fg">#10231B</color>
 </resources>
