@@ -3,11 +3,28 @@
 تطبيق أندرويد **مجاني ومفتوح المصدر** للقرآن الكريم: استماع، مشاهدة، قراءة، بث مباشر،
 إذاعات، وتفسير صوتي — بأصوات أكثر من **150 قارئًا**.
 
-> ملاحظة: هذا الفرع (`arena/01a09c01-convertpro`) يحمل مشروع **QuranPro**،
-> بينما يحمل الفرع `main` مشروع ConvertPro الأصلي.
-
 A **free & open-source** Android app for the Holy Quran: audio, video, reading,
 live TV, radios and audio tafsir — with **150+ reciters**.
+
+[![Build QuranPro APK](https://github.com/youssefoulaidi/quranpro/actions/workflows/android.yml/badge.svg)](https://github.com/youssefoulaidi/quranpro/actions/workflows/android.yml)
+[![Release](https://img.shields.io/github/v/release/youssefoulaidi/quranpro?label=Release)](https://github.com/youssefoulaidi/quranpro/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
+![Platform](https://img.shields.io/badge/Android-7.0%2B-green)
+
+---
+
+## ⬇️ التثبيت / Install
+
+حمّل أحدث نسخة من **[صفحة الإصدارات](https://github.com/youssefoulaidi/quranpro/releases)**:
+
+| الملف | الوصف |
+|---|---|
+| `QuranPro-v*-debug.apk` | **موصى به** — موقّع وجاهز للتثبيت مباشرة |
+| `QuranPro-v*-release-unsigned.apk` | نسخة release غير موقّعة (تحتاج توقيعك الخاص) |
+
+> يتطلب أندرويد **7.0 (API 24)** فأعلى.
+
+---
 
 ## ✨ المميزات / Features
 
@@ -22,6 +39,8 @@ live TV, radios and audio tafsir — with **150+ reciters**.
 | 💾 مكتبتي | تحميل السور للاستماع **دون إنترنت** + المفضلة |
 | 🎨 التصميم | مظهر أخضر زمردي وذهبي + وضع ليلي + عربي/إنجليزي (RTL) |
 
+---
+
 ## 🔊 مصادر الصوت والصورة / Sources
 
 كلها **مجانية ودون مفتاح** — انظر التوثيق الكامل في [`API_SOURCES.md`](API_SOURCES.md):
@@ -29,6 +48,25 @@ live TV, radios and audio tafsir — with **150+ reciters**.
 - **mp3quran.net API v3** — القرّاء، المصاحف، الفيديو، البث، الإذاعات، التفسير، توقيت الآيات
 - **api.alquran.cloud** — نص المصحف بالرسم العثماني
 - **cdn.islamic.network** — ملفات صوتية بديلة (وضع عدم الاتصال)
+
+---
+
+## 🧱 بنية المشروع / Project structure
+
+```
+app/src/main/java/com/quranpro/app/
+├── App.java                 # نقطة التطبيق
+├── audio/                   # Media3: PlayerService, PlayerManager, Track
+├── data/                    # Api, Models, QuranMeta, Store (SharedPreferences)
+├── ui/                      # Activities + Fragments (السور، القرّاء، الفيديو، البث، المكتبة…)
+└── util/                    # DownloadHelper, ImageLoader, Ui
+app/src/main/assets/fonts/   # Amiri + Amiri Quran (الرسم العثماني)
+```
+
+- **الحزمة:** `com.quranpro.app` · **اللغة:** Java 17
+- **الاعتماديات:** AndroidX AppCompat/Material3/RecyclerView/DrawerLayout · Media3 (ExoPlayer + HLS + Session) · Gson
+
+---
 
 ## 🛠️ البناء / Build
 
@@ -38,12 +76,15 @@ live TV, radios and audio tafsir — with **150+ reciters**.
 # APK في: app/build/outputs/apk/debug/app-debug.apk
 
 ./gradlew assembleRelease
-# (موقّع فقط عند وجود keystore.properties — انظر UPLOAD_GUIDE.md)
+# (موقّع فقط عند وجود keystore.properties — انظر RELEASE.md)
 ```
 
 - minSdk 24 (أندرويد 7.0+) — targetSdk 34
 - Java + Media3 (ExoPlayer) + Material3
-- يُبنى تلقائيًا عبر GitHub Actions عند الدفع على هذا الفرع (النسخة في Artifacts)
+- يُبنى تلقائيًا عبر GitHub Actions عند الدفع إلى `main`،
+  ويُنتج **GitHub Release** بملفات APK — انظر [`RELEASE.md`](RELEASE.md)
+
+---
 
 ## 📜 الترخيص / License
 

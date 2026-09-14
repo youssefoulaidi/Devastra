@@ -2,7 +2,9 @@ name: Build QuranPro APK
 
 on:
   push:
-    branches: ["arena/01a09c01-convertpro"]
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -28,6 +30,18 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
 
+      - name: Read version from app/build.gradle
+        id: ver
+        run: |
+          VERSION_NAME=$(grep -oE 'versionName[[:space:]]+"[^"]+"' app/build.gradle | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+          VERSION_CODE=$(grep -oE 'versionCode[[:space:]]+[0-9]+' app/build.gradle | head -1 | grep -oE '[0-9]+')
+          [ -n "$VERSION_NAME" ] || VERSION_NAME=0.0
+          [ -n "$VERSION_CODE" ] || VERSION_CODE=1
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "QuranPro v$VERSION_NAME (versionCode $VERSION_CODE) -> tag v$VERSION_NAME"
+
       - name: Build debug APK
         run: |
           chmod +x gradlew
@@ -35,7 +49,7 @@ jobs:
           test ${PIPESTATUS[0]} -eq 0
 
       - name: Build release APK (unsigned unless keystore.properties exists)
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assembleRelease --stacktrace 2>&1 | tee -a gradle-debug.log
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -51,36 +65,44 @@ jobs:
           path: app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: warn
 
+      # Publish only on main / manual runs — never on pull requests.
       - name: Publish GitHub Release with APKs
-        if: success()
+        if: success() && github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk QuranPro-v1.0-debug.apk
-          cp app/build/outputs/apk/release/app-release-unsigned.apk QuranPro-v1.0-release-unsigned.apk || true
-          gh release delete quranpro-v1.0 --yes 2>/dev/null || true
-          git push origin :quranpro-v1.0 2>/dev/null || true
-          git tag -f quranpro-v1.0
-          git push origin quranpro-v1.0
-          gh release create quranpro-v1.0 QuranPro-v1.0-debug.apk QuranPro-v1.0-release-unsigned.apk \
-            --title "QuranPro v1.0 - القرآن الكريم صوت وصورة" \
-            --notes "النسخة الأولى من تطبيق القرآن الكريم: استماع ومشاهدة وقراءة بأصوات أكثر من 150 قارئا. الملف الموصى بالتثبيت: QuranPro-v1.0-debug.apk (موقّع وجاهز للتثبيت)."
-
-      - name: Commit installable APK to branch
-        if: success()
-        run: |
-          git config user.name "arena-bot"
-          git config user.email "arena-bot@users.noreply.github.com"
-          cp QuranPro-v1.0-debug.apk QuranPro-v1.0.apk
-          git add -f QuranPro-v1.0.apk
-          git commit -m "QuranPro v1.0 APK [skip ci]" || echo "no changes"
-          git push origin HEAD:arena/01a09c01-convertpro || true
+          TAG="${{ steps.ver.outputs.tag }}"
+          NAME="${{ steps.ver.outputs.name }}"
+          cp app/build/outputs/apk/debug/app-debug.apk "QuranPro-v$NAME-debug.apk"
+          cp app/build/outputs/apk/release/app-release-unsigned.apk "QuranPro-v$NAME-release-unsigned.apk" 2>/dev/null || true
+          # Idempotent: replace any existing release/tag for this version
+          gh release delete "$TAG" --yes 2>/dev/null || true
+          git push origin ":refs/tags/$TAG" 2>/dev/null || true
+          git tag -f "$TAG"
+          git push -f origin "$TAG"
+          printf '%s\n\n%s\n%s\n\n%s\n' \
+            "تطبيق القرآن الكريم: استماع ومشاهدة وقراءة بأصوات أكثر من 150 قارئًا." \
+            "**الملف الموصى به للتثبيت:** \`QuranPro-v$NAME-debug.apk\` (موقّع وجاهز للتثبيت مباشرة)." \
+            "\`QuranPro-v$NAME-release-unsigned.apk\` نسخة release غير موقّعة (تحتاج توقيعك الخاص)." \
+            "versionCode: ${{ steps.ver.outputs.code }} · بُني آليًا من \`main\` @ ${GITHUB_SHA::7}" \
+            > release-notes.md
+          gh release create "$TAG" QuranPro-v$NAME-*.apk \
+            --title "QuranPro v$NAME — القرآن الكريم صوت وصورة" \
+            --notes-file release-notes.md
 
       - name: Report failure log
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          { echo '```'; tail -c 55000 gradle-debug.log; echo '```'; } > tail.txt
-          PR=$(gh pr list --head arena/01a09c01-convertpro --json number --jq '.[0].number')
-          gh pr comment "$PR" --body-file tail.txt || true
+          { echo '```'; tail -c 55000 gradle-debug.log 2>/dev/null; echo '```'; } > gradle-tail.txt
+          PR="${{ github.event.pull_request.number }}"
+          if [ -n "$PR" ]; then gh pr comment "$PR" --body-file gradle-tail.txt || true; fi
+
+      - name: Upload failure log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-failure-log
+          path: gradle-tail.txt
+          if-no-files-found: ignore

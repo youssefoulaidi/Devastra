@@ -10,6 +10,14 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.each { k, v -> project.ext.set(k, v) }
 }
 
+// Signing properties: "qp*" preferred, legacy "cp*" kept as fallback.
+def signingProp = { String qpName, String legacyName ->
+    if (project.hasProperty(qpName)) return project.property(qpName)
+    if (project.hasProperty(legacyName)) return project.property(legacyName)
+    return null
+}
+def qpStoreFile = signingProp("qpStoreFile", "cpStoreFile")
+
 android {
     namespace 'com.quranpro.app'
     compileSdk 34
@@ -25,11 +33,11 @@ android {
 
     signingConfigs {
         release {
-            if (project.hasProperty("cpStoreFile")) {
-                storeFile file(project.property("cpStoreFile"))
-                storePassword project.property("cpStorePassword")
-                keyAlias project.property("cpKeyAlias")
-                keyPassword project.property("cpKeyPassword")
+            if (qpStoreFile != null) {
+                storeFile file(qpStoreFile)
+                storePassword signingProp("qpStorePassword", "cpStorePassword")
+                keyAlias signingProp("qpKeyAlias", "cpKeyAlias")
+                keyPassword signingProp("qpKeyPassword", "cpKeyPassword")
             }
         }
     }
@@ -38,7 +46,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (project.hasProperty("cpStoreFile")) {
+            if (qpStoreFile != null) {
                 signingConfig signingConfigs.release
             }
         }

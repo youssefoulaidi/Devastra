@@ -1,5 +1,7 @@
+# Gradle / Android Studio
 *.iml
 .gradle/
+.kotlin/
 local.properties
 .idea/
 .DS_Store
@@ -7,8 +9,17 @@ build/
 captures/
 .externalNativeBuild/
 .cxx/
+
+# Build outputs (APKs/AABs are published to GitHub Releases, not committed)
 *.apk
 *.aab
+
+# Signing material — never commit
 *.keystore
 *.jks
 keystore.properties
+
+# CI scratch files
+gradle-debug.log
+gradle-tail.txt
+release-notes.md
