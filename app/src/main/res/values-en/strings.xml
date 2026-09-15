@@ -235,6 +235,12 @@
     <string name="adhan_playing">Playing adhan…</string>
     <string name="adhan_offline_download">Download the muezzin voice — works offline</string>
     <string name="adhan_offline_bundled">This voice is bundled in the app — works offline ✓</string>
+    <string name="adhan_downloading">Downloading…</string>
+    <string name="adhan_downloading_pct">Downloading… %1$s% — works offline when finished</string>
+    <string name="adhan_downloading_voice">Downloading %1$s so it works offline…</string>
+    <string name="adhan_dl_all">Download all voices for offline use (%1$s/%2$s)</string>
+    <string name="adhan_offline_ready_count">Voices ready offline: %1$s of %2$s</string>
+    <string name="adhan_offline_need_download">The muezzin voice “%1$s” is not downloaded — download it from the muezzin settings so the adhan works offline</string>
 
     <!-- Qibla -->
     <string name="qibla_title">Qibla direction</string>
@@ -247,4 +253,19 @@
     <string name="qibla_need_location">Set your location first to show the Qibla</string>
     <string name="qibla_no_sensor">No compass sensor on this device — bearing shown is calculated from your location</string>
     <string name="qibla_device_heading">Device heading: %1$s°</string>
+
+    <!-- Offline downloads / adhan / tafsir (v1.5) -->
+    <string name="dl_no_space">Not enough free space to download this surah</string>
+    <string name="dl_percent">Downloading… %1$s%%</string>
+    <string name="dl_progress">Downloading…</string>
+    <string name="dl_size">%1$s on device</string>
+    <string name="dl_storage">Storage used: %1$s</string>
+    <string name="opt_delete_download">Delete download (available offline)</string>
+    <string name="tafsir_no_items">No tafsir clips are available for this tafsir yet</string>
+    <string name="tafsir_retry">Tap to retry</string>
+    <string name="tafsir_offline_hint">Showing a saved copy — it will refresh when you are online</string>
+    <string name="pt_offline_calc">Times computed on device (no internet)</string>
+    <string name="pt_asr_school">Asr calculation</string>
+    <string name="pt_asr_standard">Standard (Shafi’i / Maliki / Hanbali)</string>
+    <string name="pt_asr_hanafi">Hanafi</string>
 </resources>

@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.quranpro.app.R;
 import com.quranpro.app.data.Api;
+import com.quranpro.app.data.PrayerCalc;
 import com.quranpro.app.data.PrayerTimes;
 import com.quranpro.app.data.Store;
 import com.quranpro.app.pray.AdhanScheduler;
@@ -119,13 +120,8 @@ public class PrayerTimesActivity extends BaseActivity {
             render();
             return;
         }
-        String json = Store.prTimesJson(this);
-        pt = null;
-        if (json != null) {
-            try {
-                pt = PrayerTimes.parse(json);
-            } catch (Exception ignored) {}
-        }
+        pt = PrayerCalc.day(this, 0);
+        if (pt != null && !pt.hasTimes()) pt = null;
         render();
     }
 
@@ -147,6 +143,9 @@ public class PrayerTimesActivity extends BaseActivity {
                     }
 
                     @Override public void err(String m) {
+                        // offline: keep the on-device calculation up to date
+                        loadCache();
+                        AdhanScheduler.rescheduleAll(PrayerTimesActivity.this);
                         if (announce) Ui.toast(PrayerTimesActivity.this, R.string.error_network);
                     }
                 });
@@ -154,14 +153,24 @@ public class PrayerTimesActivity extends BaseActivity {
 
     private void pickMethod() {
         boolean ar = Ui.isArabic();
-        String[] names = new String[METHODS.length];
+        String[] names = new String[METHODS.length + 1];
         for (int i = 0; i < METHODS.length; i++) {
             names[i] = ar ? (String) METHODS[i][1] : (String) METHODS[i][2];
         }
+        names[METHODS.length] = getString(R.string.pt_asr_school) + ": "
+                + getString(Store.asrSchool(this) == 1
+                ? R.string.pt_asr_hanafi : R.string.pt_asr_standard);
         new AlertDialog.Builder(this)
                 .setTitle(R.string.pt_method)
                 .setItems(names, (d, w) -> {
-                    Store.setPrayerMethod(this, (int) METHODS[w][0]);
+                    if (w == METHODS.length) {
+                        Store.setAsrSchool(this, Store.asrSchool(this) == 1 ? 0 : 1);
+                    } else {
+                        Store.setPrayerMethod(this, (int) METHODS[w][0]);
+                    }
+                    // recompute locally right away, then refresh from the API
+                    loadCache();
+                    AdhanScheduler.rescheduleAll(this);
                     fetch(true);
                 })
                 .setNegativeButton(R.string.cancel, null)
@@ -187,8 +196,9 @@ public class PrayerTimesActivity extends BaseActivity {
 
         String gDate = Ui.isArabic() ? pt.readableLocalized() : pt.readable;
         tDate.setText(Ui.isArabic() ? Ui.digits(gDate) : gDate);
-        tHijri.setText(pt.hijri.isEmpty() ? "" :
-                getString(R.string.pt_hijri_date,
+        tHijri.setText(pt.hijri.isEmpty()
+                ? getString(R.string.pt_offline_calc)
+                : getString(R.string.pt_hijri_date,
                         Ui.isArabic() ? Ui.digits(pt.hijri) : pt.hijri));
         for (int i = 0; i < 6; i++) {
             String t = pt.raw[i];
@@ -238,10 +248,16 @@ public class PrayerTimesActivity extends BaseActivity {
     private String methodLabel() {
         int id = Store.prayerMethod(this);
         boolean ar = Ui.isArabic();
+        String base = id + "";
         for (Object[] m : METHODS) {
-            if ((int) m[0] == id) return ar ? (String) m[1] : (String) m[2];
+            if ((int) m[0] == id) {
+                base = ar ? (String) m[1] : (String) m[2];
+                break;
+            }
         }
-        return id + "";
+        String school = getString(Store.asrSchool(this) == 1
+                ? R.string.pt_asr_hanafi : R.string.pt_asr_standard);
+        return base + " • " + school;
     }
 
     @Override

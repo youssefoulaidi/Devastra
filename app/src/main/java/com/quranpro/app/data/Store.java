@@ -261,6 +261,15 @@ public final class Store {
         return p(c).getInt("prMethod", 3); // 3 = Muslim World League
     }
 
+    /** 0 = standard (Shafi'i/Maliki/Hanbali), 1 = Hanafi — affects the Asr time. */
+    public static int asrSchool(Context c) {
+        return p(c).getInt("prSchool", 0);
+    }
+
+    public static void setAsrSchool(Context c, int s) {
+        p(c).edit().putInt("prSchool", s <= 0 ? 0 : 1).apply();
+    }
+
     public static void setPrayerMethod(Context c, int m) {
         p(c).edit().putInt("prMethod", m).apply();
     }

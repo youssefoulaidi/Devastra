@@ -104,9 +104,37 @@ public final class Models {
     }
 
     public static class TafsirSura {
+        public int id;
+        public int tafsirId;
         public int suraId;
         public String name;
         public String url;
+        /** Stable ordering inside a surah (API entry id). */
+        public int order;
+
+        /** "سورة البقرة" — the surah part of the API title. */
+        public String surahTitle() {
+            if (name == null) return "";
+            int cut = name.indexOf("الايات");
+            if (cut < 0) cut = name.indexOf("الآيات");
+            if (cut < 0) cut = name.indexOf("الايه");
+            if (cut > 0) return name.substring(0, cut).trim();
+            return name.trim();
+        }
+
+        /** "الآيات من 1 إلى 25" / "كاملة" — the range part of the API title. */
+        public String rangeTitle() {
+            if (name == null) return "";
+            int cut = name.indexOf("الايات");
+            if (cut < 0) cut = name.indexOf("الآيات");
+            if (cut < 0) cut = name.indexOf("الايه");
+            if (cut < 0) {
+                return name.contains("كامل") ? "كاملة" : "";
+            }
+            String rest = name.substring(cut).trim();
+            rest = rest.replace("الايات من", "الآيات من").replace("الي", "إلى");
+            return rest;
+        }
     }
 
     public static class Ayah {

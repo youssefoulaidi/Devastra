@@ -26,8 +26,8 @@ android {
         applicationId "com.quranpro.app"
         minSdk 24
         targetSdk 34
-        versionCode 4
-        versionName "1.3"
+        versionCode 5
+        versionName "1.5"
         resourceConfigurations += ["en", "ar"]
     }
 
@@ -95,51 +95,79 @@ dependencies {
 }
 
 
+// Voices that are *downloaded at build time* into assets/adhan (best effort).
+// A curated set is committed to the repository so the adhan always works offline,
+// even when the build machine has no network access.
 def adhanAssets = [
-        [name: 'athan_mishary.mp3', url: 'https://raw.githubusercontent.com/abodehq/Athan-MP3/master/Sounds/Athan%20Mishary%20Alafasi.mp3'],
-        [name: 'athan_makkah.mp3',  url: 'https://raw.githubusercontent.com/abodehq/Athan-MP3/master/Sounds/Athan%20Makkah.mp3'],
+        [name: 'athan_mishary.mp3',
+         url : 'https://raw.githubusercontent.com/abodehq/Athan-MP3/master/Sounds/Athan%20Mishary%20Alafasi.mp3'],
+        [name: 'athan_qatami.mp3',
+         url : 'https://raw.githubusercontent.com/abodehq/Athan-MP3/master/Sounds/Athan%20Nasser%20Alqatami.mp3'],
+        [name: 'athan_chebae.mp3',
+         url : 'https://raw.githubusercontent.com/abodehq/Athan-MP3/master/Sounds/Athan%20Al-fajer%20-%20Malek%20chebae.mp3'],
+        [name: 'athan_ahmad.mp3',
+         url : 'https://raw.githubusercontent.com/abodehq/Athan-MP3/master/Sounds/Athan%20Ahmad%20Nuyne3.mp3'],
+        [name: 'athan_makkah.mp3',
+         url : 'https://raw.githubusercontent.com/abodehq/Athan-MP3/master/Sounds/Athan%20Makkah.mp3'],
 ]
+
+/** ID3 tag or an MPEG frame sync → the file really is audio. */
+static boolean looksLikeAudio(File f) {
+    if (f == null || !f.exists() || f.length() < 100 * 1024) return false
+    try {
+        byte[] head = new byte[16]
+        f.withInputStream { input ->
+            if (input.read(head) < 4) return false
+        }
+        if (head[0] == (byte) 'I' && head[1] == (byte) 'D' && head[2] == (byte) '3') return true
+        return (head[0] & 0xFF) == 0xFF && (head[1] & 0xE0) == 0xE0
+    } catch (Throwable ignored) {
+        return false
+    }
+}
 
 tasks.register('fetchAdhanAssets') {
     doLast {
-        try {
-            File dir = file('src/main/assets/adhan')
-            dir.mkdirs()
-            adhanAssets.each { asset ->
-                File out = new File(dir, asset.name)
-                File part = new File(dir, asset.name + '.part')
-                try {
-                    if (!(out.exists() && out.length() > 200 * 1024)) {
-                        if (part.exists()) part.delete()
-                        def conn = new URL(asset.url).openConnection()
-                        conn.setConnectTimeout(20_000)
-                        conn.setReadTimeout(40_000)
-                        conn.setRequestProperty('User-Agent', 'QuranPro asset fetcher')
-                        conn.getInputStream().withCloseable { input ->
-                            new FileOutputStream(part).withCloseable { output ->
-                                byte[] buffer = new byte[16 * 1024]
-                                int n
-                                while ((n = input.read(buffer)) != -1) {
-                                    output.write(buffer, 0, n)
-                                }
-                                output.flush()
-                            }
-                        }
-                        if (part.exists() && part.length() > 200 * 1024) {
-                            if (out.exists()) out.delete()
-                            if (!part.renameTo(out)) {
-                                out.bytes = part.bytes
-                                part.delete()
-                            }
-                        } else if (part.exists()) {
-                            part.delete()
-                        }
-                    }
-                } catch (Throwable ignored) {
-                    try { part.delete() } catch (Throwable ignored2) {}
-                }
+        File dir = file('src/main/assets/adhan')
+        dir.mkdirs()
+        adhanAssets.each { asset ->
+            File out = new File(dir, asset.name)
+            if (looksLikeAudio(out)) {
+                logger.lifecycle("adhan asset ${asset.name} already present (${out.length()} bytes)")
+                return
             }
-        } catch (Throwable ignored) {
+            File part = new File(dir, asset.name + '.part')
+            try {
+                if (part.exists()) part.delete()
+                def conn = new URL(asset.url).openConnection()
+                conn.setConnectTimeout(20_000)
+                conn.setReadTimeout(60_000)
+                conn.setRequestProperty('User-Agent', 'Mozilla/5.0 QuranPro asset fetcher')
+                conn.getInputStream().withCloseable { input ->
+                    new FileOutputStream(part).withCloseable { output ->
+                        byte[] buffer = new byte[32 * 1024]
+                        int n
+                        while ((n = input.read(buffer)) != -1) {
+                            output.write(buffer, 0, n)
+                        }
+                        output.flush()
+                    }
+                }
+                if (looksLikeAudio(part)) {
+                    if (out.exists()) out.delete()
+                    if (!part.renameTo(out)) {
+                        out.bytes = part.bytes
+                        part.delete()
+                    }
+                    logger.lifecycle("fetched adhan asset ${asset.name} (${out.length()} bytes)")
+                } else {
+                    logger.lifecycle("adhan asset ${asset.name} unavailable — the app will use the committed voices")
+                    part.delete()
+                }
+            } catch (Throwable ignored) {
+                logger.lifecycle("adhan asset ${asset.name} could not be fetched (offline build?)")
+                try { part.delete() } catch (Throwable ignored2) {}
+            }
         }
     }
 }

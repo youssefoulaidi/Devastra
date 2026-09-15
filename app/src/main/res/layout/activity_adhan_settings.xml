@@ -192,6 +192,21 @@
                             android:layout_marginBottom="10dp"
                             android:text="@string/adhan_test"
                             app:cornerRadius="12dp" />
+
+                        <TextView
+                            android:id="@+id/btn_offline_all"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:gravity="center"
+                            android:paddingStart="12dp"
+                            android:paddingTop="6dp"
+                            android:paddingEnd="12dp"
+                            android:paddingBottom="12dp"
+                            android:text="@string/adhan_dl_all"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

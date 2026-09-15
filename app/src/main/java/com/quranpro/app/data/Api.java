@@ -347,56 +347,77 @@ public final class Api {
     public static void fetchTafasir(final Context ctx, final Cb<List<Models.TafsirInfo>> cb) {
         final Context app = ctx.getApplicationContext();
         EX.execute(() -> {
+            List<Models.TafsirInfo> out = new ArrayList<>();
             try {
                 String s = getSync(app, MP3 + "/tafasir?language=ar", 7 * DAY);
-                List<Models.TafsirInfo> out = new ArrayList<>();
-                JSONArray arr = new JSONObject(s).optJSONArray("tafasir");
-                if (arr != null) {
-                    for (int i = 0; i < arr.length(); i++) {
-                        JSONObject o = arr.getJSONObject(i);
-                        Models.TafsirInfo t = new Models.TafsirInfo();
-                        t.id = o.optInt("id");
-                        t.name = o.optString("name", "").trim();
-                        if (!t.name.isEmpty()) out.add(t);
-                    }
-                }
-                App.post(() -> cb.ok(out));
-            } catch (Exception e) {
-                App.post(() -> cb.err(e.getMessage()));
-            }
+                out = parseTafasir(s);
+            } catch (Exception ignored) {}
+            if (out.isEmpty()) out = defaultTafasir();
+            final List<Models.TafsirInfo> res = out;
+            App.post(() -> cb.ok(res));
         });
     }
 
+    private static List<Models.TafsirInfo> parseTafasir(String s) {
+        List<Models.TafsirInfo> out = new ArrayList<>();
+        try {
+            JSONObject root = new JSONObject(s);
+            JSONArray arr = root.optJSONArray("tafasir");
+            if (arr == null) {
+                // single object shape: {"tafasir": {"name": "…", …}}
+                JSONObject one = root.optJSONObject("tafasir");
+                if (one != null) {
+                    Models.TafsirInfo t = new Models.TafsirInfo();
+                    t.id = one.optInt("id", 1);
+                    t.name = one.optString("name", "").trim();
+                    if (!t.name.isEmpty()) out.add(t);
+                }
+                return out;
+            }
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.getJSONObject(i);
+                Models.TafsirInfo t = new Models.TafsirInfo();
+                t.id = o.optInt("id");
+                t.name = o.optString("name", "").trim();
+                if (!t.name.isEmpty() && t.id > 0) out.add(t);
+            }
+        } catch (Exception ignored) {}
+        return out;
+    }
+
+    /**
+     * mp3quran currently exposes a single audio tafsir (id=1, Tabari summary) and the
+     * list endpoint occasionally returns nothing — this keeps the section usable.
+     */
+    public static List<Models.TafsirInfo> defaultTafasir() {
+        List<Models.TafsirInfo> out = new ArrayList<>();
+        Models.TafsirInfo t = new Models.TafsirInfo();
+        t.id = 1;
+        t.name = "الخلاصة من تفسير الطبري";
+        out.add(t);
+        return out;
+    }
+
+    /**
+     * Surah/clip list of one tafsir.
+     *
+     * <p>The live payload is {@code {"tafasir":{"name":"…","soar":[{"name":"…",
+     * "url":"…","sura_id":2,"tafsir_id":1}]}}} — the previous implementation looked for
+     * a {@code sora} <em>object</em>, so the list was always empty. Both shapes are
+     * handled now (plus the legacy {@code {"sora":{"2":[{…}]}}} one).
+     */
     public static void fetchTafsirSuras(final Context ctx, final int tafsirId,
                                         final Cb<List<Models.TafsirSura>> cb) {
         final Context app = ctx.getApplicationContext();
         EX.execute(() -> {
             try {
-                String s = getSync(app, MP3 + "/tafsir?tafsir=" + tafsirId + "&language=ar", 7 * DAY);
-                List<Models.TafsirSura> out = new ArrayList<>();
-                JSONObject root = new JSONObject(s);
-                JSONObject taf = root.optJSONObject("tafasir");
-                if (taf != null) {
-                    JSONObject sora = taf.optJSONObject("sora");
-                    if (sora != null) {
-                        Iterator<String> keys = sora.keys();
-                        while (keys.hasNext()) {
-                            String k = keys.next();
-                            JSONArray arr = sora.optJSONArray(k);
-                            if (arr != null && arr.length() > 0) {
-                                JSONObject o = arr.getJSONObject(0);
-                                Models.TafsirSura t = new Models.TafsirSura();
-                                t.suraId = o.optInt("sura_id", parseIntSafe(k));
-                                t.name = o.optString("name", "").trim();
-                                t.url = o.optString("url", "").trim();
-                                if (!t.url.isEmpty()) out.add(t);
-                            }
-                        }
-                    }
-                }
+                String s = getSync(app, MP3 + "/tafsir?tafsir=" + tafsirId + "&language=ar",
+                        7 * DAY);
+                List<Models.TafsirSura> out = parseTafsirSuras(s, tafsirId);
                 Collections.sort(out, new Comparator<Models.TafsirSura>() {
                     @Override public int compare(Models.TafsirSura a, Models.TafsirSura b) {
-                        return a.suraId - b.suraId;
+                        if (a.suraId != b.suraId) return a.suraId - b.suraId;
+                        return a.order - b.order;
                     }
                 });
                 App.post(() -> cb.ok(out));
@@ -404,6 +425,52 @@ public final class Api {
                 App.post(() -> cb.err(e.getMessage()));
             }
         });
+    }
+
+    private static List<Models.TafsirSura> parseTafsirSuras(String s, int tafsirId) {
+        List<Models.TafsirSura> out = new ArrayList<>();
+        try {
+            JSONObject root = new JSONObject(s);
+            JSONObject taf = root.optJSONObject("tafasir");
+            if (taf == null) return out;
+            JSONArray soar = taf.optJSONArray("soar");
+            if (soar != null) {
+                for (int i = 0; i < soar.length(); i++) {
+                    JSONObject o = soar.getJSONObject(i);
+                    Models.TafsirSura t = new Models.TafsirSura();
+                    t.tafsirId = o.optInt("tafsir_id", tafsirId);
+                    t.id = o.optInt("id");
+                    t.suraId = o.optInt("sura_id", 0);
+                    t.name = o.optString("name", "").trim();
+                    t.url = o.optString("url", "").trim();
+                    t.order = t.id > 0 ? t.id : i;
+                    if (!t.url.isEmpty()) out.add(t);
+                }
+                return out;
+            }
+            // legacy shape: {"sora": {"<suraId>": [ {...}, … ]}}
+            JSONObject sora = taf.optJSONObject("sora");
+            if (sora != null) {
+                Iterator<String> keys = sora.keys();
+                while (keys.hasNext()) {
+                    String k = keys.next();
+                    JSONArray arr = sora.optJSONArray(k);
+                    if (arr == null) continue;
+                    for (int i = 0; i < arr.length(); i++) {
+                        JSONObject o = arr.getJSONObject(i);
+                        Models.TafsirSura t = new Models.TafsirSura();
+                        t.tafsirId = tafsirId;
+                        t.id = o.optInt("id");
+                        t.suraId = o.optInt("sura_id", parseIntSafe(k));
+                        t.name = o.optString("name", "").trim();
+                        t.url = o.optString("url", "").trim();
+                        t.order = t.id > 0 ? t.id : i;
+                        if (!t.url.isEmpty()) out.add(t);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return out;
     }
 
     // ---------- quran text ----------
@@ -506,7 +573,9 @@ public final class Api {
                         : ddMmYyyy;
                 String url = ADHAN_API + "/timings/" + day
                         + "?latitude=" + lat + "&longitude=" + lon
-                        + "&method=" + method + "&iso8601=false";
+                        + "&method=" + method
+                        + "&school=" + (Store.asrSchool(app) == 1 ? 1 : 0)
+                        + "&iso8601=false";
                 String s = getSync(app, url, HOUR);
                 if (s == null || !s.contains("\"timings\"")) throw new IOException("bad payload");
                 App.post(() -> cb.ok(s));

@@ -9,11 +9,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 
@@ -23,8 +25,16 @@ import com.quranpro.app.R;
 import com.quranpro.app.data.PrayerTimes;
 import com.quranpro.app.data.Store;
 import com.quranpro.app.ui.MainActivity;
+import com.quranpro.app.util.Net;
 
-/** Plays the adhan with a foreground notification; silent alerts for pre-adhan. */
+/**
+ * Plays the adhan with a foreground notification; silent alerts for pre-adhan.
+ *
+ * <p>Order of sources: offline copy (bundled asset or downloaded voice) → network
+ * stream → system notification tone. The audio therefore never depends on the network
+ * once a voice is available offline, and when a voice is streamed it is cached in the
+ * background so the next adhan plays without internet.
+ */
 public class AdhanService extends Service {
 
     public static final String EXTRA_PRAYER = "prayer";
@@ -36,6 +46,7 @@ public class AdhanService extends Service {
     private MediaPlayer mp;
     private final Handler h = new Handler(Looper.getMainLooper());
     private final Runnable autoStop = this::stopAndClean;
+    private int currentPrayer = PrayerTimes.FAJR;
 
     @Override
     public IBinder onBind(Intent i) {
@@ -76,15 +87,72 @@ public class AdhanService extends Service {
             return START_STICKY;
         }
 
+        currentPrayer = prayer;
         int voice = resolveVoice(this, prayer);
-        if (voice >= 0) {
-            play(AdhanCache.playSource(this, voice), Muezzins.fallbackFor(voice), prayer);
-            long stopMs = Math.max(1, Store.adhanStopMin(this)) * 60_000L;
-            h.postDelayed(autoStop, stopMs);
-        } else {
+        if (voice < 0) {
             h.postDelayed(this::stopAndClean, 15_000L);
+            return START_STICKY;
         }
+        playVoice(voice);
+        long stopMs = Math.max(1, Store.adhanStopMin(this)) * 60_000L;
+        h.postDelayed(autoStop, stopMs);
         return START_STICKY;
+    }
+
+    /** Offline-first playback with graceful degradation. */
+    private void playVoice(int voice) {
+        migrateCache();
+        String offline = AdhanCache.offlineSource(this, voice);
+        if (offline != null) {
+            play(offline, null, false);
+            return;
+        }
+        // Nothing stored: download it for next time, and stream it now if we can.
+        AdhanCache.ensure(this, voice);
+        if (Net.online(this)) {
+            play(AdhanCache.streamSource(voice), Muezzins.fallbackFor(voice), true);
+        } else {
+            notifyOfflineMissing(voice);
+            playTone();
+        }
+    }
+
+    private void migrateCache() {
+        try {
+            AdhanCache.migrate(this);
+        } catch (Exception ignored) {}
+    }
+
+    /** Nothing stored and no internet: ring the default alert tone so the user hears it. */
+    private void playTone() {
+        try {
+            Uri tone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            if (tone == null) {
+                h.postDelayed(this::stopAndClean, 800L);
+                return;
+            }
+            play(tone.toString(), null, false);
+        } catch (Exception e) {
+            h.postDelayed(this::stopAndClean, 800L);
+        }
+    }
+
+    private void notifyOfflineMissing(int voice) {
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null) return;
+        Intent open = new Intent(this, com.quranpro.app.ui.AdhanSettingsActivity.class);
+        int fl = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent pi = PendingIntent.getActivity(this, 913, open, fl);
+        NotificationCompat.Builder b = new NotificationCompat.Builder(this, CHANNEL)
+                .setSmallIcon(R.drawable.ic_stat_quran)
+                .setContentTitle(getString(R.string.app_short))
+                .setContentText(getString(R.string.adhan_offline_need_download,
+                        Muezzins.voiceLabel(voice)))
+                .setContentIntent(pi)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_ALARM);
+        nm.notify(NOTIF_ID + 1, b.build());
     }
 
     private Notification baseNotif(String text) {
@@ -107,10 +175,14 @@ public class AdhanService extends Service {
         Intent stop = new Intent(this, AdhanService.class).setAction(ACTION_STOP);
         b.addAction(0, getString(R.string.adhan_stop_now),
                 PendingIntent.getService(this, 911, stop, fl));
+
+        Intent settings = new Intent(this, com.quranpro.app.ui.AdhanSettingsActivity.class);
+        b.addAction(0, getString(R.string.adhan_title),
+                PendingIntent.getActivity(this, 914, settings, fl));
         return b.build();
     }
 
-    private void play(String src, String fallback, int prayer) {
+    private void play(String src, String fallback, boolean streamed) {
         release();
         if (src == null || src.trim().isEmpty()) {
             h.postDelayed(this::stopAndClean, 800L);
@@ -119,6 +191,9 @@ public class AdhanService extends Service {
         try {
             mp = new MediaPlayer();
             mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            try {
+                mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+            } catch (Exception ignored) {}
             AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             if (am != null) {
                 try {
@@ -127,16 +202,30 @@ public class AdhanService extends Service {
                 } catch (Exception ignored) {}
             }
             setSource(this, mp, src);
+            final String fb = fallback;
             mp.setOnErrorListener((m, what, extra) -> {
-                if (fallback != null) play(fallback, null, prayer);
-                else h.postDelayed(this::stopAndClean, 400L);
+                if (fb != null) {
+                    play(fb, null, streamed);
+                } else if (streamed) {
+                    // streaming failed (network dropped): fall back to whatever we have
+                    final int voice = resolveVoice(this, currentPrayer);
+                    String offline = AdhanCache.offlineSource(this, voice);
+                    if (offline != null) play(offline, null, false);
+                    else playTone();
+                } else {
+                    h.postDelayed(this::stopAndClean, 400L);
+                }
                 return true;
             });
             mp.setOnCompletionListener(m -> h.postDelayed(this::stopAndClean, 800L));
+            mp.setOnPreparedListener(m -> {
+                try {
+                    m.start();
+                } catch (Exception ignored) {}
+            });
             mp.prepareAsync();
-            mp.setOnPreparedListener(MediaPlayer::start);
         } catch (Exception e) {
-            if (fallback != null) play(fallback, null, prayer);
+            if (fallback != null) play(fallback, null, streamed);
             else h.postDelayed(this::stopAndClean, 800L);
         }
     }
@@ -193,16 +282,29 @@ public class AdhanService extends Service {
         if (!pre) {
             int voice = resolveVoice(ctx, prayer);
             if (voice >= 0) {
-                playOnce(ctx.getApplicationContext(), AdhanCache.playSource(ctx, voice),
-                        Muezzins.fallbackFor(voice));
+                AdhanCache.migrate(ctx);
+                String offline = AdhanCache.offlineSource(ctx, voice);
+                if (offline != null) {
+                    playOnce(ctx.getApplicationContext(), offline, null);
+                } else {
+                    AdhanCache.ensure(ctx, voice);
+                    if (Net.online(ctx)) {
+                        playOnce(ctx.getApplicationContext(),
+                                AdhanCache.streamSource(voice), Muezzins.fallbackFor(voice));
+                    }
+                }
             }
         }
     }
 
     private static void playOnce(Context ctx, String src, String fallback) {
+        if (src == null || src.trim().isEmpty()) return;
         try {
             MediaPlayer p = new MediaPlayer();
             p.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            try {
+                p.setWakeMode(ctx, PowerManager.PARTIAL_WAKE_LOCK);
+            } catch (Exception ignored) {}
             setSource(ctx, p, src);
             p.setOnPreparedListener(MediaPlayer::start);
             p.setOnCompletionListener(MediaPlayer::release);
@@ -219,7 +321,8 @@ public class AdhanService extends Service {
 
     private static void setSource(Context ctx, MediaPlayer player, String src) throws Exception {
         if (src == null || src.trim().isEmpty()) throw new IllegalArgumentException("empty source");
-        if (src.startsWith("file:///android_asset/") || src.startsWith("file://")) {
+        if (src.startsWith("file:///android_asset/") || src.startsWith("file://")
+                || src.startsWith("content://")) {
             player.setDataSource(ctx, Uri.parse(src));
         } else {
             player.setDataSource(src);
@@ -266,7 +369,9 @@ public class AdhanService extends Service {
 
     private void stopAndClean() {
         release();
-        stopForeground(STOP_FOREGROUND_REMOVE);
+        try {
+            stopForeground(STOP_FOREGROUND_REMOVE);
+        } catch (Exception ignored) {}
         stopSelf();
     }
 

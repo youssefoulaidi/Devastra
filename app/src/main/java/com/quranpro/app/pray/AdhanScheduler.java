@@ -6,15 +6,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
+import com.quranpro.app.data.PrayerCalc;
 import com.quranpro.app.data.PrayerTimes;
 import com.quranpro.app.data.Store;
 
 import java.util.Calendar;
-import java.util.Locale;
 
 /**
- * Schedules exact alarms for every enabled adhan of the day + a midnight
- * refresh alarm that re-fetches tomorrow's timings.
+ * Schedules exact alarms for every enabled adhan of the day + a midnight refresh alarm
+ * that re-fetches tomorrow's timings.
+ *
+ * <p>Tomorrow's prayers are scheduled as well (from the on-device calculation when the
+ * network is unavailable), so the adhan keeps firing even if the phone is off overnight
+ * or the refresh alarm is missed — and it needs no internet at all, since the times can
+ * be computed locally.
  */
 public final class AdhanScheduler {
     private AdhanScheduler() {}
@@ -24,21 +29,24 @@ public final class AdhanScheduler {
 
     public static final String EXTRA_PRAYER = "prayer";
     public static final String EXTRA_PRE = "pre";
+    /** Request code offset for tomorrow's alarms (so they do not clash with today's). */
+    private static final int TOMORROW_BASE = 600;
 
     private static PendingIntent pi(Context c, int code, Intent i) {
         int fl = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         return PendingIntent.getBroadcast(c.getApplicationContext(), code, i, fl);
     }
 
-    private static Intent fireIntent(Context c, int prayerIdx, boolean pre) {
+    private static Intent fireIntent(Context c, int prayerIdx, boolean pre, boolean tomorrow) {
         Intent i = new Intent(c.getApplicationContext(), AdhanReceiver.class);
         i.setAction(ACTION_FIRE);
         i.putExtra(EXTRA_PRAYER, prayerIdx);
         i.putExtra(EXTRA_PRE, pre);
+        i.putExtra("tomorrow", tomorrow);
         return i;
     }
 
-    /** Cancel everything, then schedule remaining adhan for today + daily refresh. */
+    /** Cancel everything, then schedule the remaining adhan for today + tomorrow. */
     public static synchronized void rescheduleAll(Context ctx) {
         AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
         if (am == null) return;
@@ -46,7 +54,8 @@ public final class AdhanScheduler {
         // cancel previous alarms
         for (int i : PrayerTimes.PRAYERS) {
             for (boolean pre : new boolean[]{false, true}) {
-                am.cancel(pi(ctx, reqCode(i, pre), fireIntent(ctx, i, pre)));
+                am.cancel(pi(ctx, reqCode(i, pre, false), fireIntent(ctx, i, pre, false)));
+                am.cancel(pi(ctx, reqCode(i, pre, true), fireIntent(ctx, i, pre, true)));
             }
         }
         am.cancel(pi(ctx, 900, new Intent(ctx, AdhanReceiver.class).setAction(ACTION_REFRESH)));
@@ -54,22 +63,27 @@ public final class AdhanScheduler {
         if (!Store.adhanMaster(ctx)) return;
 
         long now = System.currentTimeMillis();
-        PrayerTimes pt = loadToday(ctx);
-        if (pt != null) {
+        int pre = Math.max(0, Store.adhanPreMin(ctx));
+
+        for (int dayOffset = 0; dayOffset <= 1; dayOffset++) {
+            // today: cached API timings when available, otherwise the local calculation
+            PrayerTimes pt = PrayerCalc.day(ctx, dayOffset);
+            if (pt == null || !pt.hasTimes()) continue;
+            boolean tomorrow = dayOffset == 1;
             for (int i : PrayerTimes.PRAYERS) {
-                String key = keyFor(i);
-                if (!Store.adhanOn(ctx, key)) continue;
-                if (pt.times[i] > now) {
-                    setAlarm(ctx, am, reqCode(i, false), fireIntent(ctx, i, false), pt.times[i]);
-                    int pre = Store.adhanPreMin(ctx);
-                    if (pre > 0 && pt.times[i] - pre * 60_000L > now) {
-                        setAlarm(ctx, am, reqCode(i, true), fireIntent(ctx, i, true),
-                                pt.times[i] - pre * 60_000L);
+                if (!Store.adhanOn(ctx, keyFor(i))) continue;
+                long t = pt.times[i];
+                if (t <= 0 || t <= now) continue;
+                setAlarm(ctx, am, reqCode(i, false, tomorrow),
+                        fireIntent(ctx, i, false, tomorrow), t);
+                if (pre > 0) {
+                    long preAt = t - pre * 60_000L;
+                    if (preAt > now) {
+                        setAlarm(ctx, am, reqCode(i, true, tomorrow),
+                                fireIntent(ctx, i, true, tomorrow), preAt);
                     }
                 }
             }
-        } else if (Store.location(ctx) != null) {
-            AdhanReceiver.refreshTimes(ctx);
         }
         // daily refresh just after midnight (local)
         Calendar next = Calendar.getInstance();
@@ -103,8 +117,8 @@ public final class AdhanScheduler {
         return am == null || am.canScheduleExactAlarms();
     }
 
-    private static int reqCode(int prayerIdx, boolean pre) {
-        return 400 + prayerIdx * 10 + (pre ? 1 : 0);
+    private static int reqCode(int prayerIdx, boolean pre, boolean tomorrow) {
+        return (tomorrow ? TOMORROW_BASE : 400) + prayerIdx * 10 + (pre ? 1 : 0);
     }
 
     public static String keyFor(int prayerIdx) {
@@ -132,21 +146,12 @@ public final class AdhanScheduler {
 
     /** Loads today's cached timings if they belong to today (device date). */
     public static PrayerTimes loadToday(Context ctx) {
-        String json = Store.prTimesJson(ctx);
-        if (json == null) return null;
-        try {
-            PrayerTimes pt = PrayerTimes.parse(json);
-            if (todayKey().equals(Store.prTimesDate(ctx)) || todayKey().equals(pt.date)) {
-                return pt;
-            }
-            return null;
-        } catch (Exception e) {
-            return null;
-        }
+        PrayerTimes pt = PrayerCalc.day(ctx, 0);
+        if (pt != null && pt.hasTimes()) return pt;
+        return null;
     }
 
     public static String todayKey() {
-        return String.format(Locale.US, "%td-%tm-%tY",
-                Calendar.getInstance(), Calendar.getInstance(), Calendar.getInstance());
+        return PrayerTimes.key(Calendar.getInstance());
     }
 }

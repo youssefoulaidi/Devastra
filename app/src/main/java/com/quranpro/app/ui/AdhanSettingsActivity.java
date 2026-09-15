@@ -6,10 +6,17 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.appbar.MaterialToolbar;
@@ -23,12 +30,35 @@ import com.quranpro.app.pray.AdhanService;
 import com.quranpro.app.pray.Muezzins;
 import com.quranpro.app.util.Ui;
 
-/** Muezzin settings: voice, per-prayer switches, pre-adhan alert, auto-stop. */
+import java.util.ArrayList;
+import java.util.List;
+
+/** Muezzin settings: voice, offline downloads, per-prayer switches, pre-adhan alert. */
 public class AdhanSettingsActivity extends BaseActivity {
 
     private TextView tVoice, tFajrVoice, tOffline, tPre, tStop, tTestBtn;
     private MediaPlayer test;
     private boolean triedFallback;
+
+    private final Handler h = new Handler(Looper.getMainLooper());
+    private final Runnable refreshTicker = new Runnable() {
+        @Override public void run() {
+            refreshVoiceViews();
+            if (anyDownloading()) h.postDelayed(this, 900);
+        }
+    };
+
+    private boolean anyDownloading() {
+        for (int i = 0; i < Muezzins.count(); i++) {
+            if (AdhanCache.isDownloading(i)) return true;
+        }
+        return false;
+    }
+
+    private void restartTicker() {
+        h.removeCallbacks(refreshTicker);
+        h.post(refreshTicker);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +90,7 @@ public class AdhanSettingsActivity extends BaseActivity {
         findViewById(R.id.row_pre).setOnClickListener(v -> pickPre());
         findViewById(R.id.row_stop).setOnClickListener(v -> pickStop());
         findViewById(R.id.btn_test).setOnClickListener(v -> toggleTest());
+        findViewById(R.id.btn_offline_all).setOnClickListener(v -> downloadAll());
 
         refreshVoiceViews();
         tPre.setText(preLabel(Store.adhanPreMin(this)));
@@ -104,6 +135,10 @@ public class AdhanSettingsActivity extends BaseActivity {
                 }
             });
         }
+
+        // keep the offline badges / progress up to date while downloads run
+        AdhanCache.migrate(this);
+        restartTicker();
     }
 
     private void refreshVoiceViews() {
@@ -115,65 +150,131 @@ public class AdhanSettingsActivity extends BaseActivity {
         } else {
             tFajrVoice.setText(voiceLabel(fajr));
         }
-        if (main < 0) {
-            tOffline.setText(R.string.adhan_notifications_only);
-        } else if (Muezzins.isBundled(this, main)) {
-            tOffline.setText(R.string.adhan_offline_bundled);
-        } else {
-            tOffline.setText(R.string.adhan_offline_download);
+
+        TextView all = findViewById(R.id.btn_offline_all);
+        if (all != null) {
+            int ready = AdhanCache.offlineCount(this);
+            int total = Muezzins.count();
+            boolean busy = false;
+            for (int i = 0; i < total; i++) {
+                if (AdhanCache.isDownloading(i)) {
+                    busy = true;
+                    break;
+                }
+            }
+            all.setEnabled(!busy && ready < total);
+            all.setText(getString(R.string.adhan_dl_all, Ui.digits(ready), Ui.digits(total)));
         }
+        tOffline.setText(offlineStateText(main));
+    }
+
+    private String offlineStateText(int idx) {
+        if (idx < 0) return getString(R.string.adhan_notifications_only);
+        int p = AdhanCache.progress(idx);
+        if (AdhanCache.isDownloading(idx) && p >= 0) {
+            return getString(R.string.adhan_downloading_pct, Ui.digits(p));
+        }
+        if (AdhanCache.isDownloading(idx)) return getString(R.string.adhan_downloading);
+        if (AdhanCache.isOfflineReady(this, idx)) {
+            return getString(R.string.adhan_offline_bundled);
+        }
+        return getString(R.string.adhan_offline_download);
     }
 
     private String voiceLabel(int idx) {
         if (idx < 0) return getString(R.string.adhan_notifications_only);
-        return Muezzins.voiceLabel(idx) + (Muezzins.isBundled(this, idx) ? " ✓" : "");
+        String mark = AdhanCache.isOfflineReady(this, idx) ? " ✓" : "";
+        return Muezzins.voiceLabel(idx) + mark;
     }
 
-    private String voiceLabelForDialog(int idx) {
-        return voiceLabel(idx);
-    }
+    // ---------- voice pickers ----------
 
     private void pickVoice() {
-        Muezzins.Voice[] vs = Muezzins.all();
-        final String[] names = new String[vs.length + 1];
-        names[0] = getString(R.string.adhan_notifications_only);
-        for (int i = 0; i < vs.length; i++) names[i + 1] = voiceLabelForDialog(i);
-        int checked = Math.max(0, Math.min(names.length - 1, Store.adhanVoice(this) + 1));
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.adhan_muezzin)
-                .setSingleChoiceItems(names, checked, (d, w) -> {
-                    int voice = w - 1;
-                    Store.setAdhanVoice(this, voice);
-                    if (voice >= 0) AdhanCache.start(this, voice);
-                    refreshVoiceViews();
-                    stopTest();
-                    d.dismiss();
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
+        showVoiceDialog(R.string.adhan_muezzin, Store.adhanVoice(this), true, voice -> {
+            Store.setAdhanVoice(this, voice);
+            afterVoiceChange(voice);
+        });
     }
 
     private void pickFajrVoice() {
+        showVoiceDialog(R.string.adhan_fajr_voice, Store.adhanFajrVoice(this), false, voice -> {
+            Store.setAdhanFajrVoice(this, voice);
+            afterVoiceChange(voice);
+        });
+    }
+
+    /** -2 = inherit main voice, -1 = silent, i >= 0 = muezzin index. */
+    private void showVoiceDialog(int titleRes, int current, boolean mainList,
+                                 VoiceChosen onChosen) {
         Muezzins.Voice[] vs = Muezzins.all();
-        final String[] names = new String[vs.length + 2];
-        names[0] = getString(R.string.adhan_inherit_main_voice, voiceLabel(Store.adhanVoice(this)));
-        names[1] = getString(R.string.adhan_notifications_only);
-        for (int i = 0; i < vs.length; i++) names[i + 2] = voiceLabelForDialog(i);
-        int cur = Store.adhanFajrVoice(this);
-        int checked = cur == -2 ? 0 : (cur == -1 ? 1 : cur + 2);
-        if (checked < 0 || checked >= names.length) checked = 0;
+        final List<Integer> values = new ArrayList<>();
+        final List<String> labels = new ArrayList<>();
+        if (!mainList) {
+            values.add(-2);
+            labels.add(getString(R.string.adhan_inherit_main_voice,
+                    Muezzins.voiceLabel(Store.adhanVoice(this))));
+        }
+        values.add(-1);
+        labels.add(getString(R.string.adhan_notifications_only));
+        for (int i = 0; i < vs.length; i++) {
+            values.add(i);
+            labels.add(vs[i].ar + (AdhanCache.isOfflineReady(this, i) ? "  ✓" : "  ⤓"));
+        }
+        int checked = Math.max(0, values.indexOf(current));
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_single_choice, labels) {
+            @NonNull
+            @Override
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+                if (v instanceof TextView) {
+                    TextView tv = (TextView) v;
+                    boolean offline = position < labels.size()
+                            && position < values.size()
+                            && AdhanCache.isOfflineReady(AdhanSettingsActivity.this, values.get(position));
+                    tv.setTextColor(offline
+                            ? androidx.core.content.ContextCompat.getColor(
+                                    AdhanSettingsActivity.this, R.color.gold)
+                            : tv.getCurrentTextColor());
+                }
+                return v;
+            }
+        };
+
         new AlertDialog.Builder(this)
-                .setTitle(R.string.adhan_fajr_voice)
-                .setSingleChoiceItems(names, checked, (d, w) -> {
-                    int voice = (w == 0) ? -2 : (w == 1 ? -1 : w - 2);
-                    Store.setAdhanFajrVoice(this, voice);
-                    if (voice >= 0) AdhanCache.start(this, voice);
-                    refreshVoiceViews();
+                .setTitle(titleRes)
+                .setSingleChoiceItems(adapter, checked, (d, w) -> {
+                    onChosen.on(values.get(Math.max(0, Math.min(values.size() - 1, w))));
                     d.dismiss();
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();
     }
+
+    private interface VoiceChosen {
+        void on(int voice);
+    }
+
+    private void afterVoiceChange(int voice) {
+        if (voice >= 0 && !AdhanCache.isOfflineReady(this, voice)) {
+            AdhanCache.ensure(this, voice);
+            Ui.toast(this, getString(R.string.adhan_downloading_voice,
+                    Muezzins.voiceLabel(voice)));
+        }
+        refreshVoiceViews();
+        restartTicker();
+        stopTest();
+    }
+
+    private void downloadAll() {
+        AdhanCache.ensureAll(this);
+        Ui.toast(this, R.string.adhan_downloading);
+        refreshVoiceViews();
+        restartTicker();
+    }
+
+    // ---------- other rows ----------
 
     private void pickPre() {
         final int[] opts = {0, 5, 10, 15, 20};
@@ -213,6 +314,8 @@ public class AdhanSettingsActivity extends BaseActivity {
         return getString(R.string.adhan_minutes, Ui.digits("" + m));
     }
 
+    // ---------- preview ----------
+
     private void toggleTest() {
         if (test != null) {
             stopTest();
@@ -224,12 +327,20 @@ public class AdhanSettingsActivity extends BaseActivity {
             AdhanService.vibrate(this);
             return;
         }
-        AdhanCache.start(this, voice);
+        AdhanCache.migrate(this);
+        String offline = AdhanCache.offlineSource(this, voice);
+        if (offline == null) {
+            // not available offline yet: fetch it (then it plays locally next time)
+            AdhanCache.ensure(this, voice);
+            Ui.toast(this, getString(R.string.adhan_downloading_voice,
+                    Muezzins.voiceLabel(voice)));
+            return;
+        }
         triedFallback = false;
         try {
             test = new MediaPlayer();
             test.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            setTestSource(AdhanCache.playSource(this, voice));
+            setTestSource(offline);
             test.setOnPreparedListener(MediaPlayer::start);
             test.setOnCompletionListener(mp -> stopTest());
             test.setOnErrorListener((mp, w, e) -> {
@@ -260,7 +371,8 @@ public class AdhanSettingsActivity extends BaseActivity {
 
     private void setTestSource(String src) throws Exception {
         if (test == null) return;
-        if (src.startsWith("file:///android_asset/") || src.startsWith("file://")) {
+        if (src.startsWith("file:///android_asset/") || src.startsWith("file://")
+                || src.startsWith("content://")) {
             test.setDataSource(this, Uri.parse(src));
         } else {
             test.setDataSource(src);
@@ -280,6 +392,13 @@ public class AdhanSettingsActivity extends BaseActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        refreshVoiceViews();
+        restartTicker();
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         AdhanScheduler.rescheduleAll(this);
@@ -287,6 +406,7 @@ public class AdhanSettingsActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+        h.removeCallbacks(refreshTicker);
         stopTest();
         super.onDestroy();
     }

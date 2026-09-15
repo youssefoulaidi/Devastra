@@ -185,6 +185,20 @@ public class PrayerTimes {
         return -1;
     }
 
+    /** dd-MM-yyyy key for a calendar day (used by the timings cache + scheduler). */
+    public static String key(Calendar c) {
+        return String.format(Locale.US, "%02d-%02d-%04d",
+                c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.MONTH) + 1, c.get(Calendar.YEAR));
+    }
+
+    /** True when the cached "HH:mm" strings are usable (a full day of timings). */
+    public boolean hasTimes() {
+        for (int i = 0; i < 6; i++) {
+            if (times[i] <= 0) return false;
+        }
+        return true;
+    }
+
     public static String arName(int idx) {
         switch (idx) {
             case FAJR: return "الفجر";

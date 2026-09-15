@@ -62,7 +62,9 @@ public final class PlayerManager {
             Models.Surah qs = QuranMeta.byId(id);
             String name = qs == null ? ("سورة " + id) : ("سورة " + qs.ar);
             String sub = reciterName + (mName.isEmpty() ? "" : " • " + mName);
-            String offline = DownloadHelper.offlinePath(app, moshaf.server, id);
+            // Prefer the downloaded copy so playback keeps working without internet.
+            String offline = DownloadHelper.localPath(app, reciterIdFor(app, moshaf.server),
+                    moshaf.server, id);
             tracks.add(new Track(Track.KIND_SURAH, id, name, sub,
                     moshaf.audioUrl(id), offline, moshaf.server,
                     Store.favKey(moshaf.server, id)));
@@ -87,6 +89,13 @@ public final class PlayerManager {
         tracks.add(new Track(Track.KIND_TAFSIR, suraId, title, tafsirName,
                 url, null, url, "tafsir|" + url));
         playTracks(ctx, tracks, 0);
+    }
+
+    /** Reciter id used for the download file names (matches the download screen). */
+    public static int reciterIdFor(Context c, String server) {
+        Store.Current cur = Store.getCurrent(c);
+        if (cur != null && server != null && server.equals(cur.server)) return cur.reciterId;
+        return server == null ? 0 : Math.abs(server.hashCode());
     }
 
     public static void controller(Context ctx, CCb cb) {

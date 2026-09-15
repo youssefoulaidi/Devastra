@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
+import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
@@ -71,7 +72,8 @@ public class VideoPlayerActivity extends BaseActivity {
                 .setUserAgent("QuranPro/1.0 (Android)")
                 .setAllowCrossProtocolRedirects(true);
         player = new ExoPlayer.Builder(this)
-                .setMediaSourceFactory(new DefaultMediaSourceFactory(http))
+                .setMediaSourceFactory(new DefaultMediaSourceFactory(
+                        new DefaultDataSource.Factory(this, http)))
                 .build();
         playerView.setPlayer(player);
         player.addListener(new Player.Listener() {

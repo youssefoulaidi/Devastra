@@ -8,6 +8,11 @@ import java.io.InputStream;
  * Muezzin voices for the adhan — free audio collection hosted on
  * raw.githubusercontent.com (abodehq/Athan-MP3), with an archive.org mirror
  * for the first entry.
+ *
+ * <p>A curated set ships inside the APK ({@code assets/adhan}) so the adhan works with
+ * no internet at all. Every other voice can be downloaded for offline use from the
+ * muezzin settings screen; downloaded copies are kept in internal storage and never
+ * expire.
  */
 public final class Muezzins {
     private Muezzins() {}
@@ -16,6 +21,7 @@ public final class Muezzins {
         public final String ar;
         public final String url;
         public final String fallback;
+        /** File name inside assets/adhan, or null when it is not bundled. */
         public final String asset;
 
         Voice(String ar, String url, String fallback, String asset) {
@@ -39,11 +45,13 @@ public final class Muezzins {
                         GH + "Athan%20Makkah.mp3", null,
                         "athan_makkah.mp3"),
                 new Voice("محمد رفعت",
-                        GH + "Athan%20Mohammad%20Ref3at.mp3", null, null),
+                        GH + "Athan%20Mohammad%20Ref3at.mp3", null,
+                        "athan_refaat.mp3"),
                 new Voice("محمد صديق المنشاوي",
-                        GH + "Athan%20Mohammad%20Almenshawy.mp3", null, null),
+                        GH + "Athan%20Mohammad%20Almenshawy.mp3", null,
+                        "athan_minshawi.mp3"),
                 new Voice("ناصر القطامي",
-                        GH + "Athan%20Nasser%20Alqatami.mp3", null, null),
+                        GH + "Athan%20Nasser%20Alqatami.mp3", null, "athan_qatami.mp3"),
                 new Voice("حمد الدغريري",
                         GH + "Athan%20Hamad%20Deghreri.mp3", null, null),
                 new Voice("ماجد الحمثني",
@@ -54,7 +62,22 @@ public final class Muezzins {
                         GH + "Athan%20Ibrahim%20Al-Arkani.mp3", null, null),
                 new Voice("منصور الزهراني",
                         GH + "Athan%20Mansoor%20Az-Zahrani.mp3", null, null),
+                new Voice("عبد الباسط عبد الصمد",
+                        GH + "Athan%20Abed%20Albase6.mp3", null,
+                        "athan_abdulbasit.mp3"),
+                new Voice("صهيب خطبة",
+                        GH + "Athan%20Suhaib%20Khatba.mp3", null,
+                        "athan_suhaib.mp3"),
+                new Voice("أذان الفجر — مالك شعبان",
+                        GH + "Athan%20Al-fajer%20-%20Malek%20chebae.mp3", null,
+                        "athan_chebae.mp3"),
+                new Voice("أحمد نوينع",
+                        GH + "Athan%20Ahmad%20Nuyne3.mp3", null, "athan_ahmad.mp3"),
         };
+    }
+
+    public static int count() {
+        return all().length;
     }
 
     /** -1 means "notification only, no audio". */
@@ -74,10 +97,39 @@ public final class Muezzins {
         return (idx >= 0 && idx < v.length) ? v[idx].fallback : null;
     }
 
-    public static String assetFor(Context c, int idx) {
+    /** File name inside assets/adhan, or null. */
+    public static String assetName(int idx) {
         Voice[] v = all();
-        if (c == null || idx < 0 || idx >= v.length) return null;
-        String asset = v[idx].asset;
+        return (idx >= 0 && idx < v.length) ? v[idx].asset : null;
+    }
+
+    private static volatile boolean[] bundledCache;
+
+    private static boolean[] bundled(Context c) {
+        boolean[] cache = bundledCache;
+        if (cache != null) return cache;
+        Voice[] all = all();
+        boolean[] out = new boolean[all.length];
+        for (int i = 0; i < all.length; i++) {
+            out[i] = fileExists(c, all[i].asset);
+        }
+        bundledCache = out;
+        return out;
+    }
+
+    private static boolean fileExists(Context c, String asset) {
+        if (c == null || asset == null || asset.trim().isEmpty()) return false;
+        try (InputStream ignored = c.getAssets().open("adhan/" + asset)) {
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** Playable {@code file:///android_asset/…} source when the voice ships with the app. */
+    public static String assetFor(Context c, int idx) {
+        if (c == null) return null;
+        String asset = assetName(idx);
         if (asset == null || asset.trim().isEmpty()) return null;
         String path = "adhan/" + asset;
         try (InputStream ignored = c.getAssets().open(path)) {
@@ -88,6 +140,8 @@ public final class Muezzins {
     }
 
     public static boolean isBundled(Context c, int idx) {
-        return assetFor(c, idx) != null;
+        if (c == null || idx < 0) return false;
+        boolean[] cache = bundled(c);
+        return idx < cache.length && cache[idx];
     }
 }
