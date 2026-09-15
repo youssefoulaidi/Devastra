@@ -20,7 +20,8 @@ public final class Store {
     private static final Gson G = new Gson();
 
     private static SharedPreferences p(Context c) {
-        return c.getApplicationContext().getSharedPreferences(P, Context.MODE_PRIVATE);
+        Context app = c == null ? null : c.getApplicationContext();
+        return (app == null ? c : app).getSharedPreferences(P, Context.MODE_PRIVATE);
     }
 
     // ---------- theme ----------
@@ -39,6 +40,16 @@ public final class Store {
     public static void setThemePref(Context c, int t) {
         p(c).edit().putInt("theme", t).apply();
         AppCompatDelegate.setDefaultNightMode(themeMode(c));
+    }
+
+    public static String lang(Context c) {
+        String v = p(c).getString("lang", "auto");
+        return "ar".equals(v) || "en".equals(v) ? v : "auto";
+    }
+
+    public static void setLang(Context c, String v) {
+        if (!"ar".equals(v) && !"en".equals(v) && !"auto".equals(v)) v = "auto";
+        p(c).edit().putString("lang", v).apply();
     }
 
     // ---------- settings ----------
@@ -291,6 +302,15 @@ public final class Store {
 
     public static void setAdhanVoice(Context c, int v) {
         p(c).edit().putInt("adhanVoice", v).apply();
+    }
+
+    /** -2 = inherit main voice, -1 = silent notification, otherwise a muezzin index. */
+    public static int adhanFajrVoice(Context c) {
+        return p(c).getInt("adhanFajrVoice", -2);
+    }
+
+    public static void setAdhanFajrVoice(Context c, int v) {
+        p(c).edit().putInt("adhanFajrVoice", v).apply();
     }
 
     public static int adhanPreMin(Context c) {

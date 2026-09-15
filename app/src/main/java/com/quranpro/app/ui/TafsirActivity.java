@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Audio tafsir: choose a tafsir, then a surah. */
-public class TafsirActivity extends AppCompatActivity {
+public class TafsirActivity extends BaseActivity {
 
     private Spinner sp;
     private ProgressBar progress;

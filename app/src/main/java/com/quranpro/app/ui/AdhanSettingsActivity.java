@@ -11,23 +11,24 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.quranpro.app.R;
 import com.quranpro.app.data.PrayerTimes;
 import com.quranpro.app.data.Store;
+import com.quranpro.app.pray.AdhanCache;
 import com.quranpro.app.pray.AdhanScheduler;
+import com.quranpro.app.pray.AdhanService;
 import com.quranpro.app.pray.Muezzins;
 import com.quranpro.app.util.Ui;
 
 /** Muezzin settings: voice, per-prayer switches, pre-adhan alert, auto-stop. */
-public class AdhanSettingsActivity extends AppCompatActivity {
+public class AdhanSettingsActivity extends BaseActivity {
 
-    private TextView tVoice, tPre, tStop;
-    private TextView tTestBtn;
+    private TextView tVoice, tFajrVoice, tOffline, tPre, tStop, tTestBtn;
     private MediaPlayer test;
+    private boolean triedFallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +40,8 @@ public class AdhanSettingsActivity extends AppCompatActivity {
         tb.setNavigationOnClickListener(v -> finish());
 
         tVoice = findViewById(R.id.t_voice);
+        tFajrVoice = findViewById(R.id.t_fajr_voice);
+        tOffline = findViewById(R.id.t_offline);
         tPre = findViewById(R.id.t_pre);
         tStop = findViewById(R.id.t_stop);
         tTestBtn = findViewById(R.id.btn_test);
@@ -53,12 +56,13 @@ public class AdhanSettingsActivity extends AppCompatActivity {
         findViewById(R.id.details).setVisibility(master.isChecked() ? View.VISIBLE : View.GONE);
 
         findViewById(R.id.row_voice).setOnClickListener(v -> pickVoice());
-        tVoice.setText(Muezzins.voiceLabel(Store.adhanVoice(this)));
-
+        findViewById(R.id.row_fajr_voice).setOnClickListener(v -> pickFajrVoice());
         findViewById(R.id.row_pre).setOnClickListener(v -> pickPre());
-        tPre.setText(preLabel(Store.adhanPreMin(this)));
-
         findViewById(R.id.row_stop).setOnClickListener(v -> pickStop());
+        findViewById(R.id.btn_test).setOnClickListener(v -> toggleTest());
+
+        refreshVoiceViews();
+        tPre.setText(preLabel(Store.adhanPreMin(this)));
         tStop.setText(stopLabel(Store.adhanStopMin(this)));
 
         SwitchMaterial vib = findViewById(R.id.sw_vibrate);
@@ -83,9 +87,6 @@ public class AdhanSettingsActivity extends AppCompatActivity {
             });
         }
 
-        findViewById(R.id.btn_stop_test).setVisibility(View.GONE);
-        findViewById(R.id.btn_stop_test).setOnClickListener(v -> stopTest());
-
         final View warn = findViewById(R.id.warn_exact);
         if (AdhanScheduler.exactAllowed(this)) {
             warn.setVisibility(View.GONE);
@@ -105,19 +106,70 @@ public class AdhanSettingsActivity extends AppCompatActivity {
         }
     }
 
-    // ---------- pickers ----------
+    private void refreshVoiceViews() {
+        int main = Store.adhanVoice(this);
+        tVoice.setText(voiceLabel(main));
+        int fajr = Store.adhanFajrVoice(this);
+        if (fajr == -2) {
+            tFajrVoice.setText(getString(R.string.adhan_inherit_main_voice, voiceLabel(main)));
+        } else {
+            tFajrVoice.setText(voiceLabel(fajr));
+        }
+        if (main < 0) {
+            tOffline.setText(R.string.adhan_notifications_only);
+        } else if (Muezzins.isBundled(this, main)) {
+            tOffline.setText(R.string.adhan_offline_bundled);
+        } else {
+            tOffline.setText(R.string.adhan_offline_download);
+        }
+    }
+
+    private String voiceLabel(int idx) {
+        if (idx < 0) return getString(R.string.adhan_notifications_only);
+        return Muezzins.voiceLabel(idx) + (Muezzins.isBundled(this, idx) ? " ✓" : "");
+    }
+
+    private String voiceLabelForDialog(int idx) {
+        return voiceLabel(idx);
+    }
 
     private void pickVoice() {
         Muezzins.Voice[] vs = Muezzins.all();
         final String[] names = new String[vs.length + 1];
         names[0] = getString(R.string.adhan_notifications_only);
-        for (int i = 0; i < vs.length; i++) names[i + 1] = vs[i].ar;
+        for (int i = 0; i < vs.length; i++) names[i + 1] = voiceLabelForDialog(i);
+        int checked = Math.max(0, Math.min(names.length - 1, Store.adhanVoice(this) + 1));
         new AlertDialog.Builder(this)
                 .setTitle(R.string.adhan_muezzin)
-                .setItems(names, (d, w) -> {
-                    Store.setAdhanVoice(this, w - 1);
-                    tVoice.setText(Muezzins.voiceLabel(w - 1));
+                .setSingleChoiceItems(names, checked, (d, w) -> {
+                    int voice = w - 1;
+                    Store.setAdhanVoice(this, voice);
+                    if (voice >= 0) AdhanCache.start(this, voice);
+                    refreshVoiceViews();
                     stopTest();
+                    d.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void pickFajrVoice() {
+        Muezzins.Voice[] vs = Muezzins.all();
+        final String[] names = new String[vs.length + 2];
+        names[0] = getString(R.string.adhan_inherit_main_voice, voiceLabel(Store.adhanVoice(this)));
+        names[1] = getString(R.string.adhan_notifications_only);
+        for (int i = 0; i < vs.length; i++) names[i + 2] = voiceLabelForDialog(i);
+        int cur = Store.adhanFajrVoice(this);
+        int checked = cur == -2 ? 0 : (cur == -1 ? 1 : cur + 2);
+        if (checked < 0 || checked >= names.length) checked = 0;
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.adhan_fajr_voice)
+                .setSingleChoiceItems(names, checked, (d, w) -> {
+                    int voice = (w == 0) ? -2 : (w == 1 ? -1 : w - 2);
+                    Store.setAdhanFajrVoice(this, voice);
+                    if (voice >= 0) AdhanCache.start(this, voice);
+                    refreshVoiceViews();
+                    d.dismiss();
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();
@@ -161,8 +213,6 @@ public class AdhanSettingsActivity extends AppCompatActivity {
         return getString(R.string.adhan_minutes, Ui.digits("" + m));
     }
 
-    // ---------- test player ----------
-
     private void toggleTest() {
         if (test != null) {
             stopTest();
@@ -171,13 +221,15 @@ public class AdhanSettingsActivity extends AppCompatActivity {
         int voice = Store.adhanVoice(this);
         if (voice < 0) {
             Ui.toast(this, R.string.adhan_notifications_only);
-            com.quranpro.app.pray.AdhanService.vibrate(this);
+            AdhanService.vibrate(this);
             return;
         }
+        AdhanCache.start(this, voice);
+        triedFallback = false;
         try {
             test = new MediaPlayer();
             test.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            test.setDataSource(Muezzins.urlFor(voice));
+            setTestSource(AdhanCache.playSource(this, voice));
             test.setOnPreparedListener(MediaPlayer::start);
             test.setOnCompletionListener(mp -> stopTest());
             test.setOnErrorListener((mp, w, e) -> {
@@ -186,9 +238,12 @@ public class AdhanSettingsActivity extends AppCompatActivity {
                     triedFallback = true;
                     mp.reset();
                     try {
-                        mp.setDataSource(fb);
+                        setTestSource(fb);
                         mp.prepareAsync();
-                    } catch (Exception ignored) {}
+                    } catch (Exception ignored) {
+                        Ui.toast(this, R.string.error_network);
+                        stopTest();
+                    }
                 } else {
                     Ui.toast(this, R.string.error_network);
                     stopTest();
@@ -203,7 +258,14 @@ public class AdhanSettingsActivity extends AppCompatActivity {
         }
     }
 
-    private boolean triedFallback;
+    private void setTestSource(String src) throws Exception {
+        if (test == null) return;
+        if (src.startsWith("file:///android_asset/") || src.startsWith("file://")) {
+            test.setDataSource(this, Uri.parse(src));
+        } else {
+            test.setDataSource(src);
+        }
+    }
 
     private void stopTest() {
         triedFallback = false;

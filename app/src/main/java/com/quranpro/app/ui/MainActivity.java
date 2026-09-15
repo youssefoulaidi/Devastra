@@ -1,11 +1,7 @@
 package com.quranpro.app.ui;
 
 import android.Manifest;
-import android.app.DownloadManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,7 +13,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -33,10 +28,9 @@ import com.quranpro.app.audio.PlayerManager;
 import com.quranpro.app.audio.PlayerService;
 import com.quranpro.app.data.QuranMeta;
 import com.quranpro.app.data.Models;
-import com.quranpro.app.util.DownloadHelper;
 import com.quranpro.app.util.Ui;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     public static final int TAB_SURAHS = 0;
     public static final int TAB_RECITERS = 1;
@@ -64,11 +58,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private final BroadcastReceiver dlReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context c, Intent intent) {
-            DownloadHelper.refreshStatuses(MainActivity.this);
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,14 +121,6 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.POST_NOTIFICATIONS}, 11);
         }
 
-        if (Build.VERSION.SDK_INT >= 33) {
-            registerReceiver(dlReceiver,
-                    new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-                    RECEIVER_NOT_EXPORTED);
-        } else {
-            registerReceiver(dlReceiver,
-                    new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-        }
     }
 
     private boolean onDrawerItem(MenuItem item) {
@@ -286,11 +267,4 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    @Override
-    protected void onDestroy() {
-        try {
-            unregisterReceiver(dlReceiver);
-        } catch (Exception ignored) {}
-        super.onDestroy();
-    }
 }

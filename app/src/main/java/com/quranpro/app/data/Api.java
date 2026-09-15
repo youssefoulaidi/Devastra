@@ -3,6 +3,7 @@ package com.quranpro.app.data;
 import android.content.Context;
 
 import com.quranpro.app.App;
+import com.quranpro.app.util.LangHelper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -49,8 +50,7 @@ public final class Api {
     private static final long DAY = 24 * HOUR;
 
     public static String lang(Context c) {
-        String l = Locale.getDefault().getLanguage();
-        return "ar".equalsIgnoreCase(l) ? "ar" : "eng";
+        return LangHelper.isArabic(c) ? "ar" : "eng";
     }
 
     // ---------- low level ----------

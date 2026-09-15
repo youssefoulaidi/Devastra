@@ -19,7 +19,7 @@ import com.quranpro.app.util.Ui;
 import java.util.Locale;
 
 /** Qibla compass: bearing to the Kaaba from the saved location + live device heading. */
-public class QiblaActivity extends AppCompatActivity implements SensorEventListener {
+public class QiblaActivity extends BaseActivity implements SensorEventListener {
 
     // Kaaba — المسجد الحرام، مكة المكرمة
     public static final double KA_LAT = 21.4224779, KA_LON = 39.8251832;

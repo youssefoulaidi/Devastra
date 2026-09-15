@@ -13,7 +13,7 @@ import com.quranpro.app.R;
 import com.quranpro.app.util.Ui;
 
 /** About / privacy / sources page. */
-public class InfoActivity extends AppCompatActivity {
+public class InfoActivity extends BaseActivity {
 
     public static final int PAGE_ABOUT = 0;
     public static final int PAGE_PRIVACY = 1;

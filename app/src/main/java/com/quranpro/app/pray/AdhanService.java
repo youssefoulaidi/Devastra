@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -46,7 +47,6 @@ public class AdhanService extends Service {
         createChannel(this);
         if ((intent != null && ACTION_STOP.equals(intent.getAction()))
                 || !Store.adhanMaster(this)) {
-            // safe "start then stop" dance so the O+ startForeground contract is met
             try {
                 startForeground(NOTIF_ID, baseNotif(getString(R.string.app_short)));
                 stopForeground(STOP_FOREGROUND_REMOVE);
@@ -68,14 +68,13 @@ public class AdhanService extends Service {
         vibrate(this);
 
         if (pre) {
-            // Pre-adhan: alert only, stop after a minute.
             h.postDelayed(this::stopAndClean, 60_000L);
             return START_STICKY;
         }
 
-        int voice = Store.adhanVoice(this);
+        int voice = resolveVoice(this, prayer);
         if (voice >= 0) {
-            play(Muezzins.urlFor(voice), Muezzins.fallbackFor(voice), prayer);
+            play(AdhanCache.playSource(this, voice), Muezzins.fallbackFor(voice), prayer);
             long stopMs = Math.max(1, Store.adhanStopMin(this)) * 60_000L;
             h.postDelayed(autoStop, stopMs);
         } else {
@@ -107,8 +106,12 @@ public class AdhanService extends Service {
         return b.build();
     }
 
-    private void play(String url, String fallback, int prayer) {
+    private void play(String src, String fallback, int prayer) {
         release();
+        if (src == null || src.trim().isEmpty()) {
+            h.postDelayed(this::stopAndClean, 800L);
+            return;
+        }
         try {
             mp = new MediaPlayer();
             mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -119,7 +122,7 @@ public class AdhanService extends Service {
                             AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
                 } catch (Exception ignored) {}
             }
-            mp.setDataSource(url);
+            setSource(this, mp, src);
             mp.setOnErrorListener((m, what, extra) -> {
                 if (fallback != null) play(fallback, null, prayer);
                 else h.postDelayed(this::stopAndClean, 400L);
@@ -178,23 +181,47 @@ public class AdhanService extends Service {
         nm.notify(NOTIF_ID, n);
         vibrate(ctx);
         if (!pre) {
-            int voice = Store.adhanVoice(ctx);
+            int voice = resolveVoice(ctx, prayer);
             if (voice >= 0) {
-                // Audio-only fallback path without FGS (best effort).
-                try {
-                    MediaPlayer p = new MediaPlayer();
-                    p.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                    p.setDataSource(Muezzins.urlFor(voice));
-                    p.setOnPreparedListener(MediaPlayer::start);
-                    p.setOnCompletionListener(mp2 -> mp2.release());
-                    p.setOnErrorListener((mp2, w, e2) -> {
-                        mp2.release();
-                        return true;
-                    });
-                    p.prepareAsync();
-                } catch (Exception ignored) {}
+                playOnce(ctx.getApplicationContext(), AdhanCache.playSource(ctx, voice),
+                        Muezzins.fallbackFor(voice));
             }
         }
+    }
+
+    private static void playOnce(Context ctx, String src, String fallback) {
+        try {
+            MediaPlayer p = new MediaPlayer();
+            p.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            setSource(ctx, p, src);
+            p.setOnPreparedListener(MediaPlayer::start);
+            p.setOnCompletionListener(MediaPlayer::release);
+            p.setOnErrorListener((mp2, w, e2) -> {
+                mp2.release();
+                if (fallback != null) playOnce(ctx, fallback, null);
+                return true;
+            });
+            p.prepareAsync();
+        } catch (Exception ignored) {
+            if (fallback != null) playOnce(ctx, fallback, null);
+        }
+    }
+
+    private static void setSource(Context ctx, MediaPlayer player, String src) throws Exception {
+        if (src == null || src.trim().isEmpty()) throw new IllegalArgumentException("empty source");
+        if (src.startsWith("file:///android_asset/") || src.startsWith("file://")) {
+            player.setDataSource(ctx, Uri.parse(src));
+        } else {
+            player.setDataSource(src);
+        }
+    }
+
+    private static int resolveVoice(Context ctx, int prayer) {
+        if (prayer == PrayerTimes.FAJR) {
+            int fajr = Store.adhanFajrVoice(ctx);
+            if (fajr >= -1) return fajr;
+        }
+        return Store.adhanVoice(ctx);
     }
 
     private static String getString(Context c, int res) {

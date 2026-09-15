@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Live TV: Quran & Sunnah channels (HLS). */
-public class LiveActivity extends AppCompatActivity {
+public class LiveActivity extends BaseActivity {
 
     private ExoPlayer player;
     private PlayerView playerView;

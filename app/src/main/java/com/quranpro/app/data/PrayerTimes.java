@@ -19,11 +19,18 @@ public class PrayerTimes {
 
     private static final String[] KEYS =
             {"Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"};
+    private static final String[] AR_MONTHS = {
+            "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+            "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+    };
 
     public String date = "";      // dd-MM-yyyy
     public String readable = "";  // e.g. "14 Sep 2026"
     public String hijri = "";     // e.g. "٣ ربيع الآخر ١٤٤٨"
     public String tzId = TimeZone.getDefault().getID();
+    public int gYear;
+    public int gMonth;
+    public int gDay;
     public final String[] raw = new String[6];
     public final long[] times = new long[6];
 
@@ -44,8 +51,13 @@ public class PrayerTimes {
             pt.readable = d.optString("readable", "");
             JSONObject g = d.optJSONObject("gregorian");
             if (g != null) {
-                // aladhan "date.gregorian.date" is dd-MM-yyyy
                 pt.date = g.optString("date", "");
+                pt.gDay = parseIntSafe(g.optString("day", "0"));
+                pt.gYear = parseIntSafe(g.optString("year", "0"));
+                JSONObject gm = g.optJSONObject("month");
+                if (gm != null) {
+                    pt.gMonth = gm.optInt("number", parseIntSafe(gm.optString("number", "0")));
+                }
             }
             try {
                 JSONObject h = d.getJSONObject("hijri");
@@ -56,8 +68,6 @@ public class PrayerTimes {
                         : hm.optString(Locale.getDefault().getLanguage(),
                         hm.optString("ar", hm.optString("en", "")));
                 if (!day.isEmpty() && !year.isEmpty()) {
-                    pt.hijri = (mon.isEmpty() ? "" : mon + " ") + day + " " + year;
-                    // reorder: "day month year"
                     pt.hijri = day + (mon.isEmpty() ? "" : " " + mon) + " " + year;
                 }
             } catch (Exception ignored) {}
@@ -65,6 +75,9 @@ public class PrayerTimes {
         if (pt.date.isEmpty()) {
             pt.date = String.format(Locale.US, "%td-%tm-%tY",
                     Calendar.getInstance(), Calendar.getInstance(), Calendar.getInstance());
+        }
+        if (pt.gDay <= 0 || pt.gMonth <= 0 || pt.gYear <= 0) {
+            pt.fillGregorianFromDate();
         }
         TimeZone tz = TimeZone.getTimeZone(pt.tzId);
         Calendar dayCal = dayFrom(pt.date, tz);
@@ -74,6 +87,31 @@ public class PrayerTimes {
             pt.times[i] = atTime(dayCal, hhmm);
         }
         return pt;
+    }
+
+    public String readableLocalized() {
+        if (gDay > 0 && gMonth >= 1 && gMonth <= 12 && gYear > 0
+                && "ar".equalsIgnoreCase(Locale.getDefault().getLanguage())) {
+            return gDay + " " + AR_MONTHS[gMonth - 1] + " " + gYear;
+        }
+        return readable;
+    }
+
+    private void fillGregorianFromDate() {
+        try {
+            String[] p = date.split("-");
+            gDay = parseIntSafe(p[0]);
+            gMonth = parseIntSafe(p[1]);
+            gYear = parseIntSafe(p[2]);
+        } catch (Exception ignored) {}
+    }
+
+    private static int parseIntSafe(String s) {
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     private static String stripTail(String s) {

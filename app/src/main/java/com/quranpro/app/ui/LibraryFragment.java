@@ -37,6 +37,7 @@ public class LibraryFragment extends Fragment {
     private TextView empty;
     private LibAdapter adapter;
     private int mode; // 0 downloads, 1 favs
+    private final Runnable dlListener = this::refreshSafe;
 
     @Nullable
     @Override
@@ -75,7 +76,19 @@ public class LibraryFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        DownloadHelper.addListener(dlListener);
         DownloadHelper.refreshStatuses(requireContext());
+        refresh();
+    }
+
+    @Override
+    public void onPause() {
+        DownloadHelper.removeListener(dlListener);
+        super.onPause();
+    }
+
+    private void refreshSafe() {
+        if (!isAdded()) return;
         refresh();
     }
 

@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.widget.Toast;
 
+import com.quranpro.app.App;
+import com.quranpro.app.data.Store;
+
 import java.util.Locale;
 
 /** Small UI helpers: digits, durations, share. */
@@ -16,6 +19,12 @@ public final class Ui {
     private static final char[] AR_DIGITS = {'٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'};
 
     public static boolean isArabic() {
+        Context c = App.context();
+        if (c != null) {
+            String pref = Store.lang(c);
+            if ("ar".equals(pref)) return true;
+            if ("en".equals(pref)) return false;
+        }
         return "ar".equalsIgnoreCase(Locale.getDefault().getLanguage());
     }
 

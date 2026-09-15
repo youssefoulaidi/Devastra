@@ -32,7 +32,7 @@ import com.quranpro.app.util.Ui;
 import java.util.List;
 
 /** Mushaf text (uthmani) with optional ayah-by-ayah follow while listening. */
-public class ReadActivity extends AppCompatActivity {
+public class ReadActivity extends BaseActivity {
 
     public static void open(Context c, int surahId) {
         Intent i = new Intent(c, ReadActivity.class);

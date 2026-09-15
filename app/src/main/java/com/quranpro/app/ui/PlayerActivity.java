@@ -23,7 +23,7 @@ import com.quranpro.app.util.DownloadHelper;
 import com.quranpro.app.util.Ui;
 
 /** Full-screen audio player. */
-public class PlayerActivity extends AppCompatActivity {
+public class PlayerActivity extends BaseActivity {
 
     private MediaController controller;
     private TextView title, sub, tCur, tTotal;

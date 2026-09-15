@@ -32,8 +32,8 @@
                 android:padding="26dp">
 
                 <ImageView
-                    android:layout_width="46dp"
-                    android:layout_height="46dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@drawable/ic_heart_fill"
                     app:tint="@color/gold" />
 
@@ -56,52 +56,58 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:padding="14dp">
 
-                    <ImageView
-                        android:layout_width="46dp"
-                        android:layout_height="46dp"
-                        android:background="@drawable/bg_num_badge"
-                        android:padding="10dp"
-                        android:src="@drawable/ic_paypal"
-                        app:tint="#0070BA" />
-
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/support_paypal"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
+                        <ImageView
+                            android:layout_width="46dp"
+                            android:layout_height="46dp"
+                            android:background="@drawable/bg_num_badge"
+                            android:padding="10dp"
+                            android:src="@drawable/ic_paypal"
+                            app:tint="#0070BA" />
 
-                        <TextView
-                            android:layout_width="match_parent"
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="@string/support_paypal_sub"
-                            android:textColor="@color/muted"
-                            android:textSize="12sp" />
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/support_paypal"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/support_paypal_sub"
+                                android:textColor="@color/muted"
+                                android:textSize="12sp" />
+                        </LinearLayout>
                     </LinearLayout>
-                </LinearLayout>
 
-                <Button
-                    android:id="@+id/btn_paypal"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginStart="14dp"
-                    android:layout_marginEnd="14dp"
-                    android:layout_marginBottom="14dp"
-                    android:text="@string/support_paypal"
-                    app:cornerRadius="14dp" />
+                    <Button
+                        android:id="@+id/btn_paypal"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="12dp"
+                        android:backgroundTint="#0070BA"
+                        android:text="@string/support_paypal"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="14dp" />
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
@@ -113,53 +119,57 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:padding="14dp">
 
-                    <ImageView
-                        android:layout_width="46dp"
-                        android:layout_height="46dp"
-                        android:background="@drawable/bg_num_badge"
-                        android:padding="10dp"
-                        android:src="@drawable/ic_ad"
-                        app:tint="?attr/colorPrimary" />
-
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/support_ads"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
+                        <ImageView
+                            android:layout_width="46dp"
+                            android:layout_height="46dp"
+                            android:background="@drawable/bg_num_badge"
+                            android:padding="10dp"
+                            android:src="@drawable/ic_ad"
+                            app:tint="?attr/colorPrimary" />
 
-                        <TextView
-                            android:layout_width="match_parent"
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="@string/support_ads_sub"
-                            android:textColor="@color/muted"
-                            android:textSize="12sp" />
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/support_ads"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/support_ads_sub"
+                                android:textColor="@color/muted"
+                                android:textSize="12sp" />
+                        </LinearLayout>
                     </LinearLayout>
-                </LinearLayout>
 
-                <Button
-                    android:id="@+id/btn_ads"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginStart="14dp"
-                    android:layout_marginEnd="14dp"
-                    android:layout_marginBottom="14dp"
-                    android:text="@string/support_ads"
-                    app:cornerRadius="14dp" />
+                    <Button
+                        android:id="@+id/btn_ads"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/support_ads"
+                        app:cornerRadius="14dp" />
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <TextView

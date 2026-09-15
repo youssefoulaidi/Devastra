@@ -23,3 +23,6 @@ keystore.properties
 gradle-debug.log
 gradle-tail.txt
 release-notes.md
+
+# Build-fetched bundled adhan assets
+app/src/main/assets/adhan/

@@ -17,7 +17,7 @@ import com.quranpro.app.util.Ui;
  * Contact page — a form that composes an email for the team.
  * The team address is intentionally hidden in the code (not shown in the UI).
  */
-public class ContactActivity extends AppCompatActivity {
+public class ContactActivity extends BaseActivity {
 
     // Recipient stays hidden: assembled at runtime, never listed in the UI.
     private static final String MAILBOX = "youssef" + "virtual";
