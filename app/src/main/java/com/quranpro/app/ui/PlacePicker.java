@@ -119,8 +119,8 @@ public final class PlacePicker {
                 .setView(box)
                 .setPositiveButton(R.string.pt_save, (d, w) -> {
                     try {
-                        double lat = Double.parseDouble(val(e1).trim());
-                        double lon = Double.parseDouble(val(e2).trim());
+                        double lat = parseCoord(val(e1));
+                        double lon = parseCoord(val(e2));
                         String name = val(e3).trim();
                         if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
                             Ui.toast(a, R.string.error_generic);
@@ -138,6 +138,19 @@ public final class PlacePicker {
 
     private static String val(EditText e) {
         return e.getText() == null ? "" : e.getText().toString();
+    }
+
+    private static double parseCoord(String s) throws NumberFormatException {
+        if (s == null) throw new NumberFormatException("empty");
+        s = s.trim().replace(',', '.');
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (ch >= '٠' && ch <= '٩') sb.append((char) ('0' + ch - '٠'));
+            else if (ch >= '۰' && ch <= '۹') sb.append((char) ('0' + ch - '۰'));
+            else sb.append(ch);
+        }
+        return Double.parseDouble(sb.toString().trim());
     }
 
     private static void useGps(final Activity a, final OnPicked cb) {

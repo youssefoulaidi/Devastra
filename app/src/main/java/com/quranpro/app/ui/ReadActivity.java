@@ -15,6 +15,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.media3.session.MediaController;
 
 import com.google.android.material.appbar.MaterialToolbar;
@@ -142,10 +143,8 @@ public class ReadActivity extends BaseActivity {
         if (ayahs == null || ayahs.isEmpty()) return;
         Models.Surah s = QuranMeta.byId(surahId);
         String type = (s != null && !s.makki) ? getString(R.string.madania) : getString(R.string.makkia);
-        tMeta.setText(getString(R.string.surah_meta, ayahs.size(), type)
-                .replace(String.valueOf(ayahs.size()), Ui.digits(ayahs.size()))
-                + " • " + getString(R.string.juz, ayahs.get(0).juz)
-                .replace(String.valueOf(ayahs.get(0).juz), Ui.digits(ayahs.get(0).juz)));
+        tMeta.setText(getString(R.string.surah_meta, Ui.digits(ayahs.size()), type)
+                + " • " + getString(R.string.juz, Ui.digits(ayahs.get(0).juz)));
 
         SpannableStringBuilder sb = new SpannableStringBuilder();
         starts = new int[ayahs.size()];
@@ -280,7 +279,7 @@ public class ReadActivity extends BaseActivity {
         BackgroundColorSpan[] spans = sb.getSpans(0, sb.length(), BackgroundColorSpan.class);
         for (BackgroundColorSpan sp : spans) sb.removeSpan(sp);
         if (ayah >= 1 && ayah <= ayahs.size()) {
-            sb.setSpan(new BackgroundColorSpan(getColor(R.color.gold_light)),
+            sb.setSpan(new BackgroundColorSpan(ContextCompat.getColor(this, R.color.gold_light)),
                     starts[ayah - 1], ends[ayah - 1], Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         tText.setText(sb);

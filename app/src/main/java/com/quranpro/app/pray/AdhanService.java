@@ -60,7 +60,11 @@ public class AdhanService extends Service {
         String title = getString(R.string.adhan_notif_title, getString(AdhanScheduler.nameRes(prayer)));
         Notification n = baseNotif(pre ? getString(R.string.adhan_pre) : title);
         try {
-            startForeground(NOTIF_ID, n);
+            if (Build.VERSION.SDK_INT >= 29) {
+                startForeground(NOTIF_ID, n, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+            } else {
+                startForeground(NOTIF_ID, n);
+            }
         } catch (Exception e) {
             stopSelf();
             return START_NOT_STICKY;
@@ -169,11 +173,17 @@ public class AdhanService extends Service {
         if (nm == null) return;
         String t = pre ? getString(ctx, R.string.adhan_pre)
                 : getString(ctx, R.string.adhan_notif_title, getString(ctx, AdhanScheduler.nameRes(prayer)));
+        Intent open = new Intent(ctx, MainActivity.class);
+        open.putExtra("tab", 0);
+        int fl = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent pi = PendingIntent.getActivity(ctx, 912, open, fl);
+
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_quran)
                 .setContentTitle(t)
                 .setContentText(pre ? "" : getString(ctx, R.string.adhan_notif_text,
                         getString(ctx, AdhanScheduler.nameRes(prayer))))
+                .setContentIntent(pi)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .setCategory(NotificationCompat.CATEGORY_ALARM);

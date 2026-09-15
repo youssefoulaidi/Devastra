@@ -186,13 +186,13 @@ public class PrayerTimesActivity extends BaseActivity {
         if (pt == null) return;
 
         String gDate = Ui.isArabic() ? pt.readableLocalized() : pt.readable;
-        tDate.setText(Ui.isArabic() ? toArabicDigits(gDate) : gDate);
+        tDate.setText(Ui.isArabic() ? Ui.digits(gDate) : gDate);
         tHijri.setText(pt.hijri.isEmpty() ? "" :
                 getString(R.string.pt_hijri_date,
-                        Ui.isArabic() ? toArabicDigits(pt.hijri) : pt.hijri, ""));
+                        Ui.isArabic() ? Ui.digits(pt.hijri) : pt.hijri));
         for (int i = 0; i < 6; i++) {
             String t = pt.raw[i];
-            timeViews[i].setText(t.isEmpty() ? "—" : toArabicDigits(t));
+            timeViews[i].setText(t.isEmpty() ? "—" : Ui.digits(t));
         }
         int cur = pt.currentIndex(System.currentTimeMillis());
         for (int i = 0; i < 6; i++) {
@@ -213,7 +213,7 @@ public class PrayerTimesActivity extends BaseActivity {
             long tmr = pt.times[PrayerTimes.FAJR] + 24L * 3600_000L;
             if (pt.times[PrayerTimes.FAJR] <= 0) return;
             tNextName.setText(R.string.pt_fajr);
-            tNextTime.setText(toArabicDigits(pt.raw[PrayerTimes.FAJR]));
+            tNextTime.setText(Ui.digits(pt.raw[PrayerTimes.FAJR]));
             tCountdown.setText(getString(R.string.pt_in, remain(tmr - now)));
             return;
         }
@@ -225,26 +225,14 @@ public class PrayerTimesActivity extends BaseActivity {
             return;
         }
         tNextName.setText(getString(AdhanScheduler.nameRes(next)));
-        tNextTime.setText(toArabicDigits(pt.raw[next]));
+        tNextTime.setText(Ui.digits(pt.raw[next]));
         tCountdown.setText(getString(R.string.pt_in, remain(nextAt - now)));
     }
 
     private static String remain(long ms) {
         long s = Math.max(0, ms / 1000);
         long hh = s / 3600, mm = (s % 3600) / 60, ss = s % 60;
-        return toArabicDigits(String.format(Locale.US, "%02d:%02d:%02d", hh, mm, ss));
-    }
-
-    private static final char[] AR = {'٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'};
-
-    private static String toArabicDigits(String s) {
-        if (!Ui.isArabic() || s == null) return s;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i);
-            sb.append(ch >= '0' && ch <= '9' ? AR[ch - '0'] : ch);
-        }
-        return sb.toString();
+        return Ui.digits(String.format(Locale.US, "%02d:%02d:%02d", hh, mm, ss));
     }
 
     private String methodLabel() {

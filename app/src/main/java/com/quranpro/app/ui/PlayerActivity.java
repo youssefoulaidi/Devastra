@@ -7,6 +7,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.media3.session.MediaController;
 
@@ -170,11 +171,11 @@ public class PlayerActivity extends BaseActivity {
         btnNext.setEnabled(controller.hasNextMediaItem());
         boolean one = PlayerManager.isRepeatOne(controller);
         btnRepeat.setImageResource(one ? R.drawable.ic_repeat : R.drawable.ic_repeat);
-        btnRepeat.setColorFilter(one ? getColor(R.color.gold) : getColor(R.color.muted));
+        btnRepeat.setColorFilter(one ? ContextCompat.getColor(this, R.color.gold) : ContextCompat.getColor(this, R.color.muted));
 
         PlayerService s = PlayerService.getInstance();
         boolean sleep = s != null && s.getSleepMinutes() > 0;
-        btnSleep.setColorFilter(sleep ? getColor(R.color.gold) : getColor(R.color.muted));
+        btnSleep.setColorFilter(sleep ? ContextCompat.getColor(this, R.color.gold) : ContextCompat.getColor(this, R.color.muted));
 
         Track t = currentTrack();
         boolean isSurah = t != null && t.kind == Track.KIND_SURAH;
@@ -182,10 +183,10 @@ public class PlayerActivity extends BaseActivity {
         btnFav.setEnabled(isSurah);
         if (isSurah && Store.isFav(this, t.key)) {
             btnFav.setImageResource(R.drawable.ic_heart_fill);
-            btnFav.setColorFilter(getColor(R.color.live_red));
+            btnFav.setColorFilter(ContextCompat.getColor(this, R.color.live_red));
         } else {
             btnFav.setImageResource(R.drawable.ic_heart);
-            btnFav.setColorFilter(getColor(R.color.muted));
+            btnFav.setColorFilter(ContextCompat.getColor(this, R.color.muted));
         }
     }
 
