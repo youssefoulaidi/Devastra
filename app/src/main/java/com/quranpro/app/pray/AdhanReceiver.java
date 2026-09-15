@@ -37,6 +37,11 @@ public class AdhanReceiver extends BroadcastReceiver {
         if (AdhanScheduler.ACTION_FIRE.equals(a)) {
             final int prayer = intent.getIntExtra(AdhanScheduler.EXTRA_PRAYER, PrayerTimes.FAJR);
             final boolean pre = intent.getBooleanExtra(AdhanScheduler.EXTRA_PRE, false);
+            final boolean tomorrow = intent.getBooleanExtra("tomorrow", false);
+            if (tomorrow) {
+                // the day rolled over while an alarm was pending — rebuild the schedule
+                AdhanScheduler.rescheduleAll(ctx);
+            }
             Intent in = new Intent(ctx, AdhanService.class);
             in.putExtra(AdhanService.EXTRA_PRAYER, prayer);
             in.putExtra(AdhanService.EXTRA_PRE, pre);
@@ -44,7 +49,7 @@ public class AdhanReceiver extends BroadcastReceiver {
                 if (Build.VERSION.SDK_INT >= 26) ctx.startForegroundService(in);
                 else ctx.startService(in);
             } catch (Exception e) {
-                // FGS not allowed in background — still notify.
+                // FGS not allowed in background — still notify (and play from here).
                 AdhanService.notifySilently(ctx.getApplicationContext(), prayer, pre);
             }
         }
@@ -59,14 +64,16 @@ public class AdhanReceiver extends BroadcastReceiver {
                 new Api.Cb<String>() {
                     @Override public void ok(String v) {
                         try {
-                            PrayerTimes p = PrayerTimes.parse(v);
+                            PrayerTimes.parse(v);
                             Store.setPrTimes(app, v, AdhanScheduler.todayKey());
                         } catch (Exception ignored) {}
                         AdhanScheduler.rescheduleAll(app);
                     }
 
                     @Override public void err(String m) {
-                        // network hiccup — retry once after 30 min, keep old alarms
+                        // No network — the on-device calculation keeps the adhan running,
+                        // and we retry the API once after 30 minutes.
+                        AdhanScheduler.rescheduleAll(app);
                         java.util.Calendar c = java.util.Calendar.getInstance();
                         c.add(java.util.Calendar.MINUTE, 30);
                         AlarmManager am = (AlarmManager)
@@ -76,8 +83,10 @@ public class AdhanReceiver extends BroadcastReceiver {
                                     .setAction(AdhanScheduler.ACTION_REFRESH);
                             int fl = PendingIntent.FLAG_UPDATE_CURRENT
                                     | PendingIntent.FLAG_IMMUTABLE;
-                            am.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(),
-                                    PendingIntent.getBroadcast(app, 901, i, fl));
+                            try {
+                                am.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(),
+                                        PendingIntent.getBroadcast(app, 901, i, fl));
+                            } catch (Exception ignored) {}
                         }
                     }
                 });

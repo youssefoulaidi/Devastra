@@ -66,6 +66,11 @@
     <string name="downloaded">تم التحميل — متاح دون إنترنت</string>
     <string name="dl_done">اكتمل التحميل</string>
     <string name="dl_fail">فشل التحميل</string>
+    <string name="dl_no_space">المساحة غير كافية لتحميل هذه السورة</string>
+    <string name="dl_percent">جارٍ التحميل… %1$s٪</string>
+    <string name="dl_progress">جارٍ التحميل…</string>
+    <string name="dl_size">%1$s على الجهاز</string>
+    <string name="dl_storage">المساحة المستخدمة: %1$s</string>
     <string name="fav_add">إضافة للمفضلة</string>
     <string name="fav_remove">إزالة من المفضلة</string>
     <string name="fav_added">أُضيفت إلى المفضلة</string>
@@ -82,6 +87,7 @@
     <string name="opt_play">تشغيل السورة</string>
     <string name="opt_read">قراءة النص</string>
     <string name="opt_download">تحميل للاستماع دون إنترنت</string>
+    <string name="opt_delete_download">حذف التحميل (متاح دون إنترنت)</string>
     <string name="opt_fav">إضافة للمفضلة</string>
     <string name="opt_share">مشاركة رابط التلاوة</string>
     <string name="opt_reciter">تشغيل بقارئ آخر</string>
@@ -100,7 +106,10 @@
     <!-- Tafsir -->
     <string name="tafsir_title">التفسير الصوتي</string>
     <string name="tafsir_choose">اختر التفسير</string>
-    <string name="tafsir_choose_surah">اختر السورة للاستماع لتفسيرها</string>
+    <string name="tafsir_choose_surah">اختر السورة أو المقطع للاستماع لتفسيره</string>
+    <string name="tafsir_no_items">لا توجد مقاطع تفسير متاحة حاليًا لهذا التفسير</string>
+    <string name="tafsir_retry">إعادة المحاولة</string>
+    <string name="tafsir_offline_hint">تم عرض نسخة محفوظة — سيعمل التفسير عند عودة الاتصال</string>
 
     <!-- Library -->
     <string name="lib_downloads">التحميلات</string>
@@ -210,6 +219,10 @@
     <string name="pt_method">طريقة الحساب</string>
     <string name="pt_refresh">تحديث المواقيت</string>
     <string name="pt_adhan_btn">إعدادات المؤذن</string>
+    <string name="pt_offline_calc">المواقيت محسوبة على الجهاز دون إنترنت</string>
+    <string name="pt_asr_school">احتساب العصر</string>
+    <string name="pt_asr_standard">الجمهور (شافعي/مالكي/حنبلي)</string>
+    <string name="pt_asr_hanafi">الحنفي</string>
     <string name="pt_loaded">تم تحديث المواقيت ✓</string>
     <string name="pt_hijri_date">%1$s هـ</string>
     <string name="pt_gps">تحديد بالموقع (GPS)</string>
@@ -246,6 +259,12 @@
     <string name="adhan_playing">يُرفع الأذان الآن…</string>
     <string name="adhan_offline_download">تنزيل صوت المؤذن — يعمل دون إنترنت</string>
     <string name="adhan_offline_bundled">الصوت مدمج في التطبيق — يعمل دون إنترنت ✓</string>
+    <string name="adhan_downloading">جارٍ التحميل…</string>
+    <string name="adhan_downloading_pct">جارٍ التحميل… %1$s٪ — سيعمل دون إنترنت بعد الانتهاء</string>
+    <string name="adhan_downloading_voice">جارٍ تحميل صوت %1$s ليعمل دون إنترنت…</string>
+    <string name="adhan_dl_all">تحميل كل الأصوات للاستخدام دون إنترنت (%1$s/%2$s)</string>
+    <string name="adhan_offline_ready_count">الأصوات الجاهزة للاستخدام دون إنترنت: %1$s من %2$s</string>
+    <string name="adhan_offline_need_download">صوت المؤذن «%1$s» غير محمَّل — حمّله من إعدادات المؤذن ليعمل الأذان دون إنترنت</string>
 
     <!-- Qibla -->
     <string name="qibla_title">اتجاه القبلة</string>

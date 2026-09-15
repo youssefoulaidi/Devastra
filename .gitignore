@@ -24,5 +24,6 @@ gradle-debug.log
 gradle-tail.txt
 release-notes.md
 
-# Build-fetched bundled adhan assets
-app/src/main/assets/adhan/
+# Bundled adhan audio: a curated set is committed for guaranteed offline playback;
+# the build fetches the remaining voices into the same folder (best effort).
+app/src/main/assets/adhan/*.part

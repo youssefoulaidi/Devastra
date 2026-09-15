@@ -233,11 +233,23 @@ public class PlayerActivity extends BaseActivity {
         if (t == null || t.kind != Track.KIND_SURAH) return;
         Models.Surah s = QuranMeta.byId(t.surahId);
         String name = s == null ? t.title : getString(R.string.read_title, s.ar);
-        int reciterId = reciterIdFor(t.server);
         String reciter = t.sub == null ? "" : t.sub.split(" • ")[0];
-        boolean started = DownloadHelper.enqueue(this, reciterId, reciter,
+        String existing = DownloadHelper.offlinePath(this, t.server, t.surahId);
+        if (existing != null) {
+            DownloadHelper.delete(this, t.key);
+            Ui.toast(this, R.string.deleted);
+            refresh();
+            return;
+        }
+        if (!com.quranpro.app.util.Net.online(this)) {
+            Ui.toast(this, R.string.error_network);
+            return;
+        }
+        boolean started = DownloadHelper.enqueue(this,
+                PlayerManager.reciterIdFor(this, t.server), reciter,
                 t.surahId, name, t.server, t.url);
         Ui.toast(this, started ? R.string.downloading : R.string.downloaded);
+        refresh();
     }
 
     private void favCurrent() {
@@ -268,9 +280,4 @@ public class PlayerActivity extends BaseActivity {
         Ui.shareText(this, t.title + " - " + t.sub + "\n" + t.url);
     }
 
-    private int reciterIdFor(String server) {
-        Store.Current cur = Store.getCurrent(this);
-        if (cur != null && server != null && server.equals(cur.server)) return cur.reciterId;
-        return server == null ? 0 : Math.abs(server.hashCode());
-    }
 }

@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.tabs.TabLayout;
 import com.quranpro.app.R;
 import com.quranpro.app.audio.PlayerManager;
@@ -21,8 +22,11 @@ import com.quranpro.app.audio.Track;
 import com.quranpro.app.data.Models;
 import com.quranpro.app.data.QuranMeta;
 import com.quranpro.app.data.Store;
+import com.quranpro.app.util.AudioCheck;
 import com.quranpro.app.util.DownloadHelper;
+import com.quranpro.app.util.Ui;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,13 +86,33 @@ public class LibraryFragment extends Fragment {
         DownloadHelper.addListener(dlListener);
         DownloadHelper.refreshStatuses(requireContext());
         refresh();
+        h.post(ticker);
     }
 
     @Override
     public void onPause() {
         DownloadHelper.removeListener(dlListener);
+        h.removeCallbacks(ticker);
         super.onPause();
     }
+
+    private final android.os.Handler h = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable ticker = new Runnable() {
+        @Override public void run() {
+            if (!isAdded()) return;
+            boolean running = false;
+            for (Store.Dl d : Store.getDls(requireContext())) {
+                if (DownloadHelper.isRunning(d.key)) {
+                    running = true;
+                    break;
+                }
+            }
+            if (running) {
+                adapter.notifyDataSetChanged();
+                h.postDelayed(this, 800);
+            }
+        }
+    };
 
     private void refreshSafe() {
         if (!isAdded()) return;
@@ -112,12 +136,14 @@ public class LibraryFragment extends Fragment {
         class H extends RecyclerView.ViewHolder {
             TextView title, sub;
             ImageButton btnPlay, btnDel;
+            LinearProgressIndicator progress;
             H(View v) {
                 super(v);
                 title = v.findViewById(R.id.title);
                 sub = v.findViewById(R.id.sub);
                 btnPlay = v.findViewById(R.id.btn_play);
                 btnDel = v.findViewById(R.id.btn_del);
+                progress = v.findViewById(R.id.progress);
             }
         }
 
@@ -136,17 +162,37 @@ public class LibraryFragment extends Fragment {
                 Models.Surah s = QuranMeta.byId(d.surahId);
                 h.title.setText(getString(R.string.read_title,
                         s == null ? d.surahName : s.ar));
-                h.sub.setText(d.reciterName + (d.done
-                        ? " • " + getString(R.string.offline_badge)
-                        : " • " + getString(R.string.downloading)));
+                File f = d.path == null ? null : new File(d.path);
+                String size = f != null && f.exists()
+                        ? " • " + AudioCheck.fmtSize(f.length()) : "";
+                int pct = DownloadHelper.progress(d.key);
+                if (d.done || (f != null && f.exists() && f.length() > 0 && pct < 0)) {
+                    h.sub.setText(d.reciterName + size + " • "
+                            + getString(R.string.offline_badge));
+                    h.progress.setVisibility(View.GONE);
+                } else if (pct >= 0) {
+                    h.sub.setText(d.reciterName + " • " + getString(R.string.dl_percent,
+                            Ui.digits(pct)));
+                    h.progress.setVisibility(View.VISIBLE);
+                    h.progress.setIndeterminate(false);
+                    h.progress.setProgress(pct);
+                } else {
+                    h.sub.setText(d.reciterName + " • " + getString(R.string.dl_progress));
+                    h.progress.setVisibility(View.VISIBLE);
+                    h.progress.setIndeterminate(true);
+                }
+                final String path = d.path;
                 View.OnClickListener play = v -> {
-                    if (!d.done) return;
+                    if (!d.done) {
+                        Ui.toast(v.getContext(), R.string.downloading);
+                        return;
+                    }
                     Models.Moshaf mm = new Models.Moshaf();
                     mm.server = d.server;
                     List<Track> tracks = new ArrayList<>();
                     tracks.add(new Track(Track.KIND_SURAH, d.surahId,
                             h.title.getText().toString(), d.reciterName,
-                            mm.audioUrl(d.surahId), d.path, d.server, d.key));
+                            mm.audioUrl(d.surahId), path, d.server, d.key));
                     PlayerManager.playTracks(v.getContext(), tracks, 0);
                     v.getContext().startActivity(new Intent(v.getContext(), PlayerActivity.class));
                 };
@@ -158,6 +204,7 @@ public class LibraryFragment extends Fragment {
                 });
             } else {
                 if (position >= favList.size()) return;
+                h.progress.setVisibility(View.GONE);
                 final Store.Fav f = favList.get(position);
                 Models.Surah s = QuranMeta.byId(f.surahId);
                 h.title.setText(getString(R.string.read_title,

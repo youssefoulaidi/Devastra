@@ -83,8 +83,20 @@ public class SurahsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         refreshHeader();
+        DownloadHelper.addListener(dlListener);
+        DownloadHelper.refreshStatuses(requireContext());
         if (adapter != null) adapter.notifyDataSetChanged();
     }
+
+    @Override
+    public void onPause() {
+        DownloadHelper.removeListener(dlListener);
+        super.onPause();
+    }
+
+    private final Runnable dlListener = () -> {
+        if (isAdded() && adapter != null) adapter.notifyDataSetChanged();
+    };
 
     private void refreshHeader() {
         if (getContext() == null) return;
@@ -156,10 +168,14 @@ public class SurahsFragment extends Fragment {
 
     private void showOptions(Models.Surah s) {
         if (getContext() == null) return;
+        Store.Current cur0 = Store.getCurrent(requireContext());
+        boolean offline = cur0 != null
+                && DownloadHelper.isDownloaded(requireContext(), cur0.server, s.id);
         String[] items = {
                 getString(R.string.opt_play),
                 getString(R.string.opt_read),
-                getString(R.string.opt_download),
+                offline ? getString(R.string.opt_delete_download)
+                        : getString(R.string.opt_download),
                 getString(R.string.opt_fav),
                 getString(R.string.opt_share),
                 getString(R.string.opt_reciter)
@@ -169,7 +185,16 @@ public class SurahsFragment extends Fragment {
                 .setItems(items, (d, which) -> {
                     if (which == 0) playSurah(s);
                     else if (which == 1) ReadActivity.open(requireContext(), s.id);
-                    else if (which == 2) downloadSurah(s);
+                    else if (which == 2) {
+                        if (offline) {
+                            DownloadHelper.delete(requireContext(),
+                                    Store.favKey(cur0.server, s.id));
+                            Ui.toast(requireContext(), R.string.deleted);
+                            adapter.notifyDataSetChanged();
+                        } else {
+                            downloadSurah(s);
+                        }
+                    }
                     else if (which == 3) toggleFav(s);
                     else if (which == 4) shareSurah(s);
                     else if (getActivity() instanceof MainActivity) {
@@ -188,9 +213,12 @@ public class SurahsFragment extends Fragment {
             Ui.toast(requireContext(), R.string.surah_not_in_moshaf);
             return;
         }
+        if (!com.quranpro.app.util.Net.online(requireContext())) {
+            Ui.toast(requireContext(), R.string.error_network);
+            return;
+        }
         boolean started = DownloadHelper.enqueue(requireContext(), cur.reciterId,
-                cur.reciterName, s.id, getString(R.string.read_title, s.ar),
-                cur.server, m.audioUrl(s.id));
+                cur.reciterName, s.id, s.ar, cur.server, m.audioUrl(s.id));
         Ui.toast(requireContext(), started ? R.string.downloading : R.string.downloaded);
         adapter.notifyDataSetChanged();
     }

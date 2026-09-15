@@ -13,6 +13,7 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
@@ -23,6 +24,7 @@ import androidx.media3.session.MediaSessionService;
 import com.quranpro.app.App;
 import com.quranpro.app.R;
 import com.quranpro.app.ui.PlayerActivity;
+import com.quranpro.app.util.DownloadHelper;
 import com.quranpro.app.util.Ui;
 
 import java.io.File;
@@ -40,6 +42,9 @@ public class PlayerService extends MediaSessionService {
     private ExoPlayer player;
     private MediaSession session;
     private final List<Track> queue = new ArrayList<>();
+    /** Media ids that already failed once — used to avoid switching back and forth. */
+    private final List<String> failedLocally = new ArrayList<>();
+    private final List<String> failedRemote = new ArrayList<>();
 
     private final Handler sleepHandler = new Handler(Looper.getMainLooper());
     private Runnable sleepTask;
@@ -59,19 +64,27 @@ public class PlayerService extends MediaSessionService {
         inst = this;
 
         DefaultHttpDataSource.Factory http = new DefaultHttpDataSource.Factory()
-                .setUserAgent("QuranPro/1.0 (Android)")
+                .setUserAgent("QuranPro/1.5 (Android)")
                 .setConnectTimeoutMs(20000)
                 .setReadTimeoutMs(30000)
                 .setAllowCrossProtocolRedirects(true);
 
+        // IMPORTANT: a raw HTTP data source cannot open file:// URIs — that is why
+        // downloaded surahs failed to play offline. DefaultDataSource resolves file://,
+        // content://, asset:// and raw resources locally and only falls back to the
+        // network for http(s) URLs.
+        DefaultDataSource.Factory dataSource =
+                new DefaultDataSource.Factory(this, http);
+
         player = new ExoPlayer.Builder(this)
-                .setMediaSourceFactory(new DefaultMediaSourceFactory(http))
+                .setMediaSourceFactory(new DefaultMediaSourceFactory(dataSource))
                 .setAudioAttributes(AudioAttributes.DEFAULT, true)
                 .setHandleAudioBecomingNoisy(true)
                 .build();
         player.addListener(new Player.Listener() {
             @Override
             public void onPlayerError(PlaybackException error) {
+                if (recoverCurrentItem(error)) return;
                 App.post(() -> Ui.toast(getApplicationContext(), R.string.error_network));
                 if (player.hasNextMediaItem()) {
                     player.seekToNextMediaItem();
@@ -94,6 +107,49 @@ public class PlayerService extends MediaSessionService {
                         .build();
         notificationProvider.setSmallIcon(R.drawable.ic_stat_quran);
         setMediaNotificationProvider(notificationProvider);
+    }
+
+    /**
+     * When a source fails, transparently try the other one: a broken local copy should
+     * fall back to streaming and a failed stream should use the downloaded file when the
+     * surah is available offline (playback then keeps working without internet).
+     */
+    private boolean recoverCurrentItem(PlaybackException error) {
+        int index = player == null ? -1 : player.getCurrentMediaItemIndex();
+        if (index < 0 || index >= queue.size()) return false;
+        Track t = queue.get(index);
+        if (t == null || t.kind != Track.KIND_SURAH) return false;
+
+        String local = DownloadHelper.localPath(getApplicationContext(), reciterId(t.server),
+                t.server, t.surahId);
+        MediaItem currentItem = player.getCurrentMediaItem();
+        Uri current = (currentItem == null || currentItem.localConfiguration == null)
+                ? null : currentItem.localConfiguration.uri;
+
+        boolean isLocal = current != null && "file".equals(current.getScheme());
+        long position = Math.max(0, player.getCurrentPosition());
+
+        Uri next = null;
+        if (isLocal) {
+            if (!failedRemote.contains(t.key)) {
+                next = Uri.parse(t.url);
+                failedRemote.add(t.key);
+            }
+        } else if (local != null && !failedLocally.contains(t.key)) {
+            next = Uri.fromFile(new File(local));
+            failedLocally.add(t.key);
+        }
+        if (next == null) return false;
+
+        player.replaceMediaItem(index, buildItem(t, next));
+        player.seekTo(index, position);
+        player.prepare();
+        player.play();
+        return true;
+    }
+
+    private static int reciterId(String server) {
+        return server == null ? 0 : Math.abs(server.hashCode());
     }
 
     @Nullable
@@ -120,30 +176,46 @@ public class PlayerService extends MediaSessionService {
         if (tracks == null || tracks.isEmpty()) return;
         queue.clear();
         queue.addAll(tracks);
+        failedLocally.clear();
+        failedRemote.clear();
         List<MediaItem> items = new ArrayList<>(tracks.size());
         for (Track t : tracks) {
-            Uri uri;
-            if (t.filePath != null && new File(t.filePath).exists()) {
-                uri = Uri.fromFile(new File(t.filePath));
-            } else {
-                uri = Uri.parse(t.url);
-            }
-            MediaMetadata md = new MediaMetadata.Builder()
-                    .setTitle(t.title == null ? "" : t.title)
-                    .setArtist(t.sub == null ? "" : t.sub)
-                    .setAlbumTitle(getString(R.string.app_short))
-                    .build();
-            items.add(new MediaItem.Builder()
-                    .setUri(uri)
-                    .setMediaId(t.key == null ? uri.toString() : t.key)
-                    .setMediaMetadata(md)
-                    .build());
+            items.add(buildItem(t, null));
         }
         if (index < 0) index = 0;
         if (index >= items.size()) index = 0;
         player.setMediaItems(items, index, C.TIME_UNSET);
         player.prepare();
         player.play();
+    }
+
+    /** Builds a media item; when {@code override} is null the offline copy is preferred. */
+    private MediaItem buildItem(Track t, @Nullable Uri override) {
+        Uri uri = override;
+        if (uri == null) {
+            if (t.filePath != null) {
+                File f = new File(t.filePath);
+                if (f.exists() && f.length() > 1024) uri = Uri.fromFile(f);
+            }
+            if (uri == null) {
+                String local = t.kind == Track.KIND_SURAH
+                        ? DownloadHelper.offlinePath(getApplicationContext(), t.server, t.surahId)
+                        : null;
+                uri = local != null && new File(local).exists()
+                        ? Uri.fromFile(new File(local))
+                        : Uri.parse(t.url);
+            }
+        }
+        MediaMetadata md = new MediaMetadata.Builder()
+                .setTitle(t.title == null ? "" : t.title)
+                .setArtist(t.sub == null ? "" : t.sub)
+                .setAlbumTitle(getString(R.string.app_short))
+                .build();
+        return new MediaItem.Builder()
+                .setUri(uri)
+                .setMediaId(t.key == null ? uri.toString() : t.key)
+                .setMediaMetadata(md)
+                .build();
     }
 
     @Nullable

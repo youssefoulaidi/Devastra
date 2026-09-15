@@ -39,6 +39,9 @@ chmod +x gradlew
 
 - **minSdk 24** (أندرويد 7.0+) · **targetSdk / compileSdk 34**
 - Java 17 · Media3 (ExoPlayer) · Material 3 · Gson
+- مهمة `fetchAdhanAssets` تجلب أصوات أذان إضافية وقت البناء إلى `app/src/main/assets/adhan/`
+  (تُتخطّى الملفات الموجودة). الأصوات الأساسية **مضمّنة في المستودع**، لذلك ينجح البناء
+  وتعمل خصائص الأذان دون إنترنت حتى لو تعذّر الوصول للشبكة أثناء البناء.
 
 ---
 
