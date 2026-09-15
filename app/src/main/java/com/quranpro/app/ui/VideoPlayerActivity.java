@@ -28,7 +28,7 @@ import com.quranpro.app.util.ImageLoader;
 import java.util.ArrayList;
 
 /** In-app video player with up-next list. */
-public class VideoPlayerActivity extends AppCompatActivity {
+public class VideoPlayerActivity extends BaseActivity {
 
     public static void open(Context c, ArrayList<String> urls, ArrayList<String> titles,
                             ArrayList<String> thumbs, int index) {

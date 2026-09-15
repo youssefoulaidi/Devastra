@@ -64,6 +64,8 @@
     <string name="download">تحميل</string>
     <string name="downloading">جارٍ التحميل…</string>
     <string name="downloaded">تم التحميل — متاح دون إنترنت</string>
+    <string name="dl_done">اكتمل التحميل</string>
+    <string name="dl_fail">فشل التحميل</string>
     <string name="fav_add">إضافة للمفضلة</string>
     <string name="fav_remove">إزالة من المفضلة</string>
     <string name="fav_added">أُضيفت إلى المفضلة</string>
@@ -122,6 +124,10 @@
     <string name="theme_system">تلقائي (حسب النظام)</string>
     <string name="theme_light">فاتح</string>
     <string name="theme_dark">داكن</string>
+    <string name="settings_language">اللغة</string>
+    <string name="lang_auto">تلقائي (لغة النظام)</string>
+    <string name="lang_ar">العربية</string>
+    <string name="lang_en">English</string>
     <string name="autoplay_next">تشغيل السورة التالية تلقائيًا</string>
     <string name="clear_cache">مسح البيانات المؤقتة</string>
     <string name="cache_cleared">تم مسح البيانات المؤقتة</string>
@@ -221,6 +227,8 @@
     <string name="adhan_title">إعدادات المؤذن</string>
     <string name="adhan_enable_master">تشغيل تنبيهات الأذان</string>
     <string name="adhan_muezzin">صوت المؤذن</string>
+    <string name="adhan_fajr_voice">صوت أذان الفجر</string>
+    <string name="adhan_inherit_main_voice">استخدام الصوت الرئيسي (%1$s)</string>
     <string name="adhan_notifications_only">إشعار بدون صوت</string>
     <string name="adhan_each_title">الأذان لكل صلاة</string>
     <string name="adhan_pre">تنبيه قبل الأذان (دقائق)</string>
@@ -236,6 +244,8 @@
     <string name="adhan_alarm_silent">للسماح بالتنبيه في الوقت المحدد تمامًا، فعّل «الإعدادات الدقيقة» للتطبيق من إعدادات النظام ثم عد.</string>
     <string name="adhan_open_settings">فتح الإعدادات</string>
     <string name="adhan_playing">يُرفع الأذان الآن…</string>
+    <string name="adhan_offline_download">تنزيل صوت المؤذن — يعمل دون إنترنت</string>
+    <string name="adhan_offline_bundled">الصوت مدمج في التطبيق — يعمل دون إنترنت ✓</string>
 
     <!-- Qibla -->
     <string name="qibla_title">اتجاه القبلة</string>

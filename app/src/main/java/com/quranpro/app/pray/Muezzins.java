@@ -1,5 +1,9 @@
 package com.quranpro.app.pray;
 
+import android.content.Context;
+
+import java.io.InputStream;
+
 /**
  * Muezzin voices for the adhan — free audio collection hosted on
  * raw.githubusercontent.com (abodehq/Athan-MP3), with an archive.org mirror
@@ -12,11 +16,13 @@ public final class Muezzins {
         public final String ar;
         public final String url;
         public final String fallback;
+        public final String asset;
 
-        Voice(String ar, String url, String fallback) {
+        Voice(String ar, String url, String fallback, String asset) {
             this.ar = ar;
             this.url = url;
             this.fallback = fallback;
+            this.asset = asset;
         }
     }
 
@@ -27,25 +33,27 @@ public final class Muezzins {
         return new Voice[]{
                 new Voice("مشاري راشد العفاسي",
                         GH + "Athan%20Mishary%20Alafasi.mp3",
-                        "https://archive.org/download/AdhanMisharyRashid/Adhan%20Mishary%20Rashid.mp3"),
+                        "https://archive.org/download/AdhanMisharyRashid/Adhan%20Mishary%20Rashid.mp3",
+                        "athan_mishary.mp3"),
                 new Voice("أذان المسجد الحرام — مكة",
-                        GH + "Athan%20Makkah.mp3", null),
+                        GH + "Athan%20Makkah.mp3", null,
+                        "athan_makkah.mp3"),
                 new Voice("محمد رفعت",
-                        GH + "Athan%20Mohammad%20Ref3at.mp3", null),
+                        GH + "Athan%20Mohammad%20Ref3at.mp3", null, null),
                 new Voice("محمد صديق المنشاوي",
-                        GH + "Athan%20Mohammad%20Almenshawy.mp3", null),
+                        GH + "Athan%20Mohammad%20Almenshawy.mp3", null, null),
                 new Voice("ناصر القطامي",
-                        GH + "Athan%20Nasser%20Alqatami.mp3", null),
+                        GH + "Athan%20Nasser%20Alqatami.mp3", null, null),
                 new Voice("حمد الدغريري",
-                        GH + "Athan%20Hamad%20Deghreri.mp3", null),
+                        GH + "Athan%20Hamad%20Deghreri.mp3", null, null),
                 new Voice("ماجد الحمثني",
-                        GH + "Athan%20Majed%20Al-hamathani.mp3", null),
+                        GH + "Athan%20Majed%20Al-hamathani.mp3", null, null),
                 new Voice("حمدان المالكي",
-                        GH + "Athan%20Hamdan%20Almalki.mp3", null),
+                        GH + "Athan%20Hamdan%20Almalki.mp3", null, null),
                 new Voice("إبراهيم الأركاني",
-                        GH + "Athan%20Ibrahim%20Al-Arkani.mp3", null),
+                        GH + "Athan%20Ibrahim%20Al-Arkani.mp3", null, null),
                 new Voice("منصور الزهراني",
-                        GH + "Athan%20Mansoor%20Az-Zahrani.mp3", null),
+                        GH + "Athan%20Mansoor%20Az-Zahrani.mp3", null, null),
         };
     }
 
@@ -64,5 +72,22 @@ public final class Muezzins {
     public static String fallbackFor(int idx) {
         Voice[] v = all();
         return (idx >= 0 && idx < v.length) ? v[idx].fallback : null;
+    }
+
+    public static String assetFor(Context c, int idx) {
+        Voice[] v = all();
+        if (c == null || idx < 0 || idx >= v.length) return null;
+        String asset = v[idx].asset;
+        if (asset == null || asset.trim().isEmpty()) return null;
+        String path = "adhan/" + asset;
+        try (InputStream ignored = c.getAssets().open(path)) {
+            return "file:///android_asset/" + path;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static boolean isBundled(Context c, int idx) {
+        return assetFor(c, idx) != null;
     }
 }

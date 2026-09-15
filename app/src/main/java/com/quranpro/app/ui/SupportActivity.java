@@ -14,7 +14,7 @@ import com.quranpro.app.util.Ui;
  *  - "Watch an ad" button — until ads are integrated it temporarily opens the
  *    developer Linktree, exactly as requested.
  */
-public class SupportActivity extends AppCompatActivity {
+public class SupportActivity extends BaseActivity {
 
     // Donation link kept out of the UI — assembled at runtime.
     private static final String PAYPAL_QR = "https://www.paypal.com/qrcodes/p2pqrc/"

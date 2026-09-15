@@ -25,7 +25,7 @@ import java.util.Locale;
  * مواقيت الصلاة — Aladhan timings for the saved place + method, live countdown
  * to the next salat, entry point to the muezzin (adhan) settings.
  */
-public class PrayerTimesActivity extends AppCompatActivity {
+public class PrayerTimesActivity extends BaseActivity {
 
     /** {aladhan method id, Arabic label, English label} */
     private static final Object[][] METHODS = {
@@ -185,7 +185,8 @@ public class PrayerTimesActivity extends AppCompatActivity {
         tMethod.setText(methodLabel());
         if (pt == null) return;
 
-        tDate.setText(Ui.isArabic() ? toArabicDigits(pt.readable) : pt.readable);
+        String gDate = Ui.isArabic() ? pt.readableLocalized() : pt.readable;
+        tDate.setText(Ui.isArabic() ? toArabicDigits(gDate) : gDate);
         tHijri.setText(pt.hijri.isEmpty() ? "" :
                 getString(R.string.pt_hijri_date,
                         Ui.isArabic() ? toArabicDigits(pt.hijri) : pt.hijri, ""));

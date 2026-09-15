@@ -156,7 +156,7 @@ public class QiblaCompassView extends View {
     }
 
     private boolean isArabic() {
-        return "ar".equalsIgnoreCase(java.util.Locale.getDefault().getLanguage());
+        return "ar".equalsIgnoreCase(getResources().getConfiguration().getLocales().get(0).getLanguage());
     }
 
     private float dp(float v) {

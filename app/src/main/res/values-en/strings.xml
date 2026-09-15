@@ -60,6 +60,8 @@
     <string name="download">Download</string>
     <string name="downloading">Downloading…</string>
     <string name="downloaded">Downloaded — available offline</string>
+    <string name="dl_done">Download complete</string>
+    <string name="dl_fail">Download failed</string>
     <string name="fav_add">Add to favorites</string>
     <string name="fav_remove">Remove from favorites</string>
     <string name="fav_added">Added to favorites</string>
@@ -112,6 +114,10 @@
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="settings_language">Language</string>
+    <string name="lang_auto">Automatic (system language)</string>
+    <string name="lang_ar">العربية</string>
+    <string name="lang_en">English</string>
     <string name="autoplay_next">Auto-play next surah</string>
     <string name="clear_cache">Clear cache</string>
     <string name="cache_cleared">Cache cleared</string>
@@ -210,6 +216,8 @@
     <string name="adhan_title">Muezzin settings</string>
     <string name="adhan_enable_master">Enable adhan alerts</string>
     <string name="adhan_muezzin">Muezzin voice</string>
+    <string name="adhan_fajr_voice">Fajr adhan voice</string>
+    <string name="adhan_inherit_main_voice">Use main voice (%1$s)</string>
     <string name="adhan_notifications_only">Notification only (silent)</string>
     <string name="adhan_each_title">Adhan per prayer</string>
     <string name="adhan_pre">Pre-adhan alert (minutes)</string>
@@ -225,6 +233,8 @@
     <string name="adhan_alarm_silent">To alert exactly on time, allow «Alarms &amp; reminders» for this app in system settings, then come back.</string>
     <string name="adhan_open_settings">Open settings</string>
     <string name="adhan_playing">Playing adhan…</string>
+    <string name="adhan_offline_download">Download the muezzin voice — works offline</string>
+    <string name="adhan_offline_bundled">This voice is bundled in the app — works offline ✓</string>
 
     <!-- Qibla -->
     <string name="qibla_title">Qibla direction</string>

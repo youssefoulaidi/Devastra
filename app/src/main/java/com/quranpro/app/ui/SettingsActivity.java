@@ -1,22 +1,26 @@
 package com.quranpro.app.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.quranpro.app.R;
 import com.quranpro.app.data.Store;
+import com.quranpro.app.util.LangHelper;
 import com.quranpro.app.util.Ui;
 
 import java.io.File;
 
-/** Theme, text size, autoplay, cache, share, about. */
-public class SettingsActivity extends AppCompatActivity {
+/** Theme, language, text size, autoplay, cache, share, about. */
+public class SettingsActivity extends BaseActivity {
+
+    private TextView tLanguage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +42,10 @@ public class SettingsActivity extends AppCompatActivity {
             else Store.setThemePref(this, 0);
         });
 
+        tLanguage = findViewById(R.id.t_language);
+        refreshLanguageLabel();
+        findViewById(R.id.row_language).setOnClickListener(v -> pickLanguage());
+
         SeekBar seek = findViewById(R.id.seek_text);
         seek.setProgress((int) (Store.textSize(this) - 14));
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -55,6 +63,7 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.row_cache).setOnClickListener(v -> {
             deleteRecursive(new File(getCacheDir(), "api"));
             deleteRecursive(new File(getCacheDir(), "img"));
+            deleteRecursive(new File(getCacheDir(), "adhan"));
             Ui.toast(this, R.string.cache_cleared);
         });
         findViewById(R.id.row_share).setOnClickListener(v ->
@@ -71,11 +80,57 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.row_about).setOnClickListener(v ->
                 InfoActivity.open(this, InfoActivity.PAGE_ABOUT));
 
-        String ver = "1.1";
+        String ver = "1.3";
         try {
             ver = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
         } catch (Exception ignored) {}
         ((TextView) findViewById(R.id.t_version)).setText(getString(R.string.version, ver));
+    }
+
+    private void pickLanguage() {
+        final String[] values = {"auto", "ar", "en"};
+        final String[] labels = {
+                getString(R.string.lang_auto),
+                getString(R.string.lang_ar),
+                getString(R.string.lang_en)
+        };
+        int checked = 0;
+        String cur = Store.lang(this);
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].equals(cur)) {
+                checked = i;
+                break;
+            }
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.settings_language)
+                .setSingleChoiceItems(labels, checked, (d, which) -> {
+                    String chosen = values[which];
+                    if (!chosen.equals(Store.lang(this))) {
+                        Store.setLang(this, chosen);
+                        LangHelper.wrap(getApplicationContext());
+                        refreshLanguageLabel();
+                        restartApp();
+                    }
+                    d.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void refreshLanguageLabel() {
+        String lang = Store.lang(this);
+        int res = R.string.lang_auto;
+        if ("ar".equals(lang)) res = R.string.lang_ar;
+        else if ("en".equals(lang)) res = R.string.lang_en;
+        tLanguage.setText(res);
+    }
+
+    private void restartApp() {
+        Intent i = new Intent(this, SplashActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
+        finishAffinity();
     }
 
     private static void deleteRecursive(File f) {

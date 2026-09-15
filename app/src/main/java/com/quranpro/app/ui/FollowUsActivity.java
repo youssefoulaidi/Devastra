@@ -13,7 +13,7 @@ import com.quranpro.app.R;
 import com.quranpro.app.util.Ui;
 
 /** Follow-us page: Facebook / Instagram / Linktree / LinkedIn. */
-public class FollowUsActivity extends AppCompatActivity {
+public class FollowUsActivity extends BaseActivity {
 
     public static final String FB = "https://facebook.com/youssef.ysah";
     public static final String IG = "https://instagram.com/oulaidi.youssef";

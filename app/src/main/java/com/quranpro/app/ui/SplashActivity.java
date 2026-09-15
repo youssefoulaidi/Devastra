@@ -9,7 +9,7 @@ import com.quranpro.app.App;
 import com.quranpro.app.R;
 import com.quranpro.app.data.Store;
 
-public class SplashActivity extends AppCompatActivity {
+public class SplashActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
