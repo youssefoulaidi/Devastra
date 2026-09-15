@@ -200,7 +200,7 @@
     <string name="pt_refresh">Refresh times</string>
     <string name="pt_adhan_btn">Muezzin settings</string>
     <string name="pt_loaded">Prayer times updated ✓</string>
-    <string name="pt_hijri_date">%1$s AH • %2$s</string>
+    <string name="pt_hijri_date">%1$s AH</string>
     <string name="pt_gps">Use my location (GPS)</string>
     <string name="pt_pick_city">Pick your city</string>
     <string name="pt_manual">Enter coordinates manually</string>

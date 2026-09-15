@@ -32,8 +32,10 @@ public class SplashActivity extends BaseActivity {
         }
 
         App.postDelayed(() -> {
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
+            if (!isFinishing() && !isDestroyed()) {
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
+            }
         }, 1400);
     }
 }

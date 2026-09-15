@@ -39,6 +39,9 @@ public class LibraryFragment extends Fragment {
     private int mode; // 0 downloads, 1 favs
     private final Runnable dlListener = this::refreshSafe;
 
+    private final List<Store.Dl> dlList = new ArrayList<>();
+    private final List<Store.Fav> favList = new ArrayList<>();
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup parent,
@@ -94,9 +97,12 @@ public class LibraryFragment extends Fragment {
 
     private void refresh() {
         if (getContext() == null) return;
+        dlList.clear();
+        dlList.addAll(Store.getDls(requireContext()));
+        favList.clear();
+        favList.addAll(Store.getFavs(requireContext()));
         adapter.notifyDataSetChanged();
-        boolean isEmpty = (mode == 0 ? Store.getDls(requireContext()).isEmpty()
-                : Store.getFavs(requireContext()).isEmpty());
+        boolean isEmpty = (mode == 0 ? dlList.isEmpty() : favList.isEmpty());
         empty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         empty.setText(isEmpty ? (mode == 0 ? getString(R.string.lib_empty_downloads)
                 : getString(R.string.lib_empty_favs)) : "");
@@ -125,14 +131,15 @@ public class LibraryFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull H h, int position) {
             if (mode == 0) {
-                final Store.Dl d = Store.getDls(h.itemView.getContext()).get(position);
+                if (position >= dlList.size()) return;
+                final Store.Dl d = dlList.get(position);
                 Models.Surah s = QuranMeta.byId(d.surahId);
                 h.title.setText(getString(R.string.read_title,
                         s == null ? d.surahName : s.ar));
                 h.sub.setText(d.reciterName + (d.done
                         ? " • " + getString(R.string.offline_badge)
                         : " • " + getString(R.string.downloading)));
-                h.btnPlay.setOnClickListener(v -> {
+                View.OnClickListener play = v -> {
                     if (!d.done) return;
                     Models.Moshaf mm = new Models.Moshaf();
                     mm.server = d.server;
@@ -142,26 +149,31 @@ public class LibraryFragment extends Fragment {
                             mm.audioUrl(d.surahId), d.path, d.server, d.key));
                     PlayerManager.playTracks(v.getContext(), tracks, 0);
                     v.getContext().startActivity(new Intent(v.getContext(), PlayerActivity.class));
-                });
+                };
+                h.btnPlay.setOnClickListener(play);
+                h.itemView.setOnClickListener(play);
                 h.btnDel.setOnClickListener(v -> {
                     DownloadHelper.delete(v.getContext(), d.key);
                     refresh();
                 });
             } else {
-                final Store.Fav f = Store.getFavs(h.itemView.getContext()).get(position);
+                if (position >= favList.size()) return;
+                final Store.Fav f = favList.get(position);
                 Models.Surah s = QuranMeta.byId(f.surahId);
                 h.title.setText(getString(R.string.read_title,
                         s == null ? f.surahName : s.ar));
                 h.sub.setText(f.reciterName + (f.moshafName == null || f.moshafName.isEmpty()
                         ? "" : " • " + f.moshafName));
-                h.btnPlay.setOnClickListener(v -> {
+                View.OnClickListener play = v -> {
                     Models.Moshaf m = new Models.Moshaf();
                     m.server = f.server;
                     m.name = f.moshafName;
                     m.list = String.valueOf(f.surahId);
                     PlayerManager.playSurah(v.getContext(), m, f.reciterName, f.surahId);
                     v.getContext().startActivity(new Intent(v.getContext(), PlayerActivity.class));
-                });
+                };
+                h.btnPlay.setOnClickListener(play);
+                h.itemView.setOnClickListener(play);
                 h.btnDel.setOnClickListener(v -> {
                     Store.removeFav(v.getContext(), f.key);
                     refresh();
@@ -171,9 +183,7 @@ public class LibraryFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            if (getContext() == null) return 0;
-            return mode == 0 ? Store.getDls(requireContext()).size()
-                    : Store.getFavs(requireContext()).size();
+            return mode == 0 ? dlList.size() : favList.size();
         }
     }
 }

@@ -91,7 +91,7 @@ public class PrayerTimes {
 
     public String readableLocalized() {
         if (gDay > 0 && gMonth >= 1 && gMonth <= 12 && gYear > 0
-                && "ar".equalsIgnoreCase(Locale.getDefault().getLanguage())) {
+                && com.quranpro.app.util.Ui.isArabic()) {
             return gDay + " " + AR_MONTHS[gMonth - 1] + " " + gYear;
         }
         return readable;

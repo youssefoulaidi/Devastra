@@ -68,6 +68,8 @@ public final class AdhanScheduler {
                     }
                 }
             }
+        } else if (Store.location(ctx) != null) {
+            AdhanReceiver.refreshTimes(ctx);
         }
         // daily refresh just after midnight (local)
         Calendar next = Calendar.getInstance();
@@ -133,7 +135,11 @@ public final class AdhanScheduler {
         String json = Store.prTimesJson(ctx);
         if (json == null) return null;
         try {
-            return PrayerTimes.parse(json);
+            PrayerTimes pt = PrayerTimes.parse(json);
+            if (todayKey().equals(Store.prTimesDate(ctx)) || todayKey().equals(pt.date)) {
+                return pt;
+            }
+            return null;
         } catch (Exception e) {
             return null;
         }

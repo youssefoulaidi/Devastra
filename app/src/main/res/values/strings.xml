@@ -211,7 +211,7 @@
     <string name="pt_refresh">تحديث المواقيت</string>
     <string name="pt_adhan_btn">إعدادات المؤذن</string>
     <string name="pt_loaded">تم تحديث المواقيت ✓</string>
-    <string name="pt_hijri_date">%1$s هـ • %2$s</string>
+    <string name="pt_hijri_date">%1$s هـ</string>
     <string name="pt_gps">تحديد بالموقع (GPS)</string>
     <string name="pt_pick_city">اختر مدينتك</string>
     <string name="pt_manual">إدخال الإحداثيات يدويًا</string>
