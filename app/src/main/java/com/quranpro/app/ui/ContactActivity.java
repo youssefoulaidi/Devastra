@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.quranpro.app.App;
 import com.quranpro.app.R;
 import com.quranpro.app.util.Ui;
 
@@ -84,10 +85,6 @@ public class ContactActivity extends BaseActivity {
     }
 
     private String appVersion() {
-        try {
-            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-        } catch (Exception e) {
-            return "1.0";
-        }
+        return App.versionName();
     }
 }

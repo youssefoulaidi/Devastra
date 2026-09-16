@@ -55,7 +55,10 @@ public final class DownloadHelper {
     private static final long MAX_BYTES = 512L * 1024L * 1024L;
     private static final long MIN_OK_BYTES = 20L * 1024L;
     private static final long FREE_SPACE_FLOOR = 8L * 1024L * 1024L;
-    private static final String UA = "Mozilla/5.0 (Linux; Android 13) QuranPro/1.5";
+    /** Browser-like UA; the app version comes from the installed package, not a literal. */
+    private static String ua() {
+        return "Mozilla/5.0 (Linux; Android 13) " + App.userAgent();
+    }
 
     private static volatile boolean migrated;
 
@@ -361,7 +364,7 @@ public final class DownloadHelper {
             cn.setInstanceFollowRedirects(false);
             cn.setConnectTimeout(CONNECT_TIMEOUT_MS);
             cn.setReadTimeout(READ_TIMEOUT_MS);
-            cn.setRequestProperty("User-Agent", UA);
+            cn.setRequestProperty("User-Agent", ua());
             cn.setRequestProperty("Accept", "*/*");
             cn.setRequestProperty("Accept-Encoding", "identity");
             if (resumeFrom > 0) cn.setRequestProperty("Range", "bytes=" + resumeFrom + "-");

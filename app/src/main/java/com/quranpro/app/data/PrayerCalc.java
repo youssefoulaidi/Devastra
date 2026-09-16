@@ -156,13 +156,21 @@ public final class PrayerCalc {
         if (Double.isNaN(isha) || Double.isInfinite(isha)) isha = maghrib + nightLength / 7d;
 
         // The computation above is in local *solar* time; convert to UTC.
+        //
+        // Do NOT wrap the result into 0..24 here: the caller turns these numbers into
+        // epoch millis as `utcMidnight + hours`, and a location east of UTC needs a
+        // *negative* offset for the early prayers. Wrapping Fajr/Sunrise forward by a
+        // whole day (what `fixHour` did) dated them tomorrow — so in Tokyo, Jakarta,
+        // Kuala Lumpur… the offline calculation showed 16 Sep for Dhuhr but 17 Sep for
+        // Fajr, the countdown picked the wrong "next prayer", and today's Fajr adhan
+        // was never scheduled.
         double shift = lon / 15d;
-        out[0] = fixHour(fajr - shift);
-        out[1] = fixHour(sunrise - shift);
-        out[2] = fixHour(dhuhr - shift);
-        out[3] = fixHour(asr - shift);
-        out[4] = fixHour(maghrib - shift);
-        out[5] = fixHour(isha - shift);
+        out[0] = fajr - shift;
+        out[1] = sunrise - shift;
+        out[2] = dhuhr - shift;
+        out[3] = asr - shift;
+        out[4] = maghrib - shift;
+        out[5] = isha - shift;
         return out;
     }
 
