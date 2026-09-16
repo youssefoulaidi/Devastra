@@ -21,6 +21,7 @@ import java.io.File;
 public class SettingsActivity extends BaseActivity {
 
     private TextView tLanguage;
+    private TextView tColor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +46,10 @@ public class SettingsActivity extends BaseActivity {
         tLanguage = findViewById(R.id.t_language);
         refreshLanguageLabel();
         findViewById(R.id.row_language).setOnClickListener(v -> pickLanguage());
+
+        tColor = findViewById(R.id.t_color);
+        refreshColorLabel();
+        findViewById(R.id.row_color).setOnClickListener(v -> pickColor());
 
         SeekBar seek = findViewById(R.id.seek_text);
         seek.setProgress((int) (Store.textSize(this) - 14));
@@ -124,6 +129,34 @@ public class SettingsActivity extends BaseActivity {
         if ("ar".equals(lang)) res = R.string.lang_ar;
         else if ("en".equals(lang)) res = R.string.lang_en;
         tLanguage.setText(res);
+    }
+
+    private void refreshColorLabel() {
+        if (tColor == null) return;
+        int idx = Store.appColor(this);
+        boolean ar = Ui.isArabic();
+        String name = ar ? Store.appColorName(this, idx) : Store.appColorNameEn(idx);
+        tColor.setText(name);
+    }
+
+    private void pickColor() {
+        final String[] labelsAr = {"أخضر زمردي", "أزرق", "بني", "بنفسجي", "تركوازي", "أحمر"};
+        final String[] labelsEn = {"Emerald", "Blue", "Brown", "Purple", "Teal", "Red"};
+        boolean ar = Ui.isArabic();
+        final String[] labels = ar ? labelsAr : labelsEn;
+        int checked = Store.appColor(this);
+        new AlertDialog.Builder(this)
+                .setTitle(ar ? "لون التطبيق" : "App color")
+                .setSingleChoiceItems(labels, checked, (d, which) -> {
+                    if (which != Store.appColor(this)) {
+                        Store.setAppColor(this, which);
+                        refreshColorLabel();
+                        restartApp();
+                    }
+                    d.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     private void restartApp() {

@@ -3,6 +3,27 @@
     <color name="brand">#2FBF8F</color>
     <color name="brand_dark">#0B7A55</color>
     <color name="brand_light">#123528</color>
+
+    <color name="brand_blue">#60A5FA</color>
+    <color name="brand_blue_dark">#2563EB</color>
+    <color name="brand_blue_light">#1E3A5F</color>
+
+    <color name="brand_brown">#A1887F</color>
+    <color name="brand_brown_dark">#795548</color>
+    <color name="brand_brown_light">#3E2723</color>
+
+    <color name="brand_purple">#A78BFA</color>
+    <color name="brand_purple_dark">#7C3AED</color>
+    <color name="brand_purple_light">#2D1B4E</color>
+
+    <color name="brand_teal">#2DD4BF</color>
+    <color name="brand_teal_dark">#0D9488</color>
+    <color name="brand_teal_light">#134E4A</color>
+
+    <color name="brand_red">#F87171</color>
+    <color name="brand_red_dark">#DC2626</color>
+    <color name="brand_red_light">#4C1D1D</color>
+
     <color name="gold">#E3C566</color>
     <color name="gold_light">#3A3320</color>
     <color name="bg">#0A1512</color>

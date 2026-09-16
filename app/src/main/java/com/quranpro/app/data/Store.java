@@ -42,6 +42,49 @@ public final class Store {
         AppCompatDelegate.setDefaultNightMode(themeMode(c));
     }
 
+    /** App color: 0 emerald, 1 blue, 2 brown, 3 purple, 4 teal, 5 red */
+    public static int appColor(Context c) {
+        return p(c).getInt("appColor", 0);
+    }
+
+    public static void setAppColor(Context c, int idx) {
+        if (idx < 0 || idx > 5) idx = 0;
+        p(c).edit().putInt("appColor", idx).apply();
+    }
+
+    public static int appColorRes(Context c) {
+        switch (appColor(c)) {
+            case 1: return com.quranpro.app.R.style.Theme_QuranPro_Blue;
+            case 2: return com.quranpro.app.R.style.Theme_QuranPro_Brown;
+            case 3: return com.quranpro.app.R.style.Theme_QuranPro_Purple;
+            case 4: return com.quranpro.app.R.style.Theme_QuranPro_Teal;
+            case 5: return com.quranpro.app.R.style.Theme_QuranPro_Red;
+            default: return com.quranpro.app.R.style.Theme_QuranPro;
+        }
+    }
+
+    public static String appColorName(Context c, int idx) {
+        switch (idx) {
+            case 1: return "أزرق";
+            case 2: return "بني";
+            case 3: return "بنفسجي";
+            case 4: return "تركوازي";
+            case 5: return "أحمر";
+            default: return "أخضر زمردي";
+        }
+    }
+
+    public static String appColorNameEn(int idx) {
+        switch (idx) {
+            case 1: return "Blue";
+            case 2: return "Brown";
+            case 3: return "Purple";
+            case 4: return "Teal";
+            case 5: return "Red";
+            default: return "Emerald";
+        }
+    }
+
     public static String lang(Context c) {
         String v = p(c).getString("lang", "auto");
         return "ar".equals(v) || "en".equals(v) ? v : "auto";

@@ -32,7 +32,7 @@
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:contentDescription="@string/now_playing"
-                android:src="@drawable/ic_launcher_fg" />
+                android:src="@mipmap/ic_launcher_fg" />
 
             <TextView
                 android:id="@+id/title"

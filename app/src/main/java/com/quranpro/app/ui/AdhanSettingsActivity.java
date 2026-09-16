@@ -28,6 +28,7 @@ import com.quranpro.app.pray.AdhanCache;
 import com.quranpro.app.pray.AdhanScheduler;
 import com.quranpro.app.pray.AdhanService;
 import com.quranpro.app.pray.Muezzins;
+import com.quranpro.app.util.Net;
 import com.quranpro.app.util.Ui;
 
 import java.util.ArrayList;
@@ -314,7 +315,7 @@ public class AdhanSettingsActivity extends BaseActivity {
         return getString(R.string.adhan_minutes, Ui.digits("" + m));
     }
 
-    // ---------- preview ----------
+    // ---------- preview (now works offline + online + streaming fallback) ----------
 
     private void toggleTest() {
         if (test != null) {
@@ -329,21 +330,42 @@ public class AdhanSettingsActivity extends BaseActivity {
         }
         AdhanCache.migrate(this);
         String offline = AdhanCache.offlineSource(this, voice);
-        if (offline == null) {
-            // not available offline yet: fetch it (then it plays locally next time)
-            AdhanCache.ensure(this, voice);
-            Ui.toast(this, getString(R.string.adhan_downloading_voice,
-                    Muezzins.voiceLabel(voice)));
+        String toPlay = offline;
+        boolean isOfflineSource = true;
+
+        if (toPlay == null) {
+            if (Net.online(this)) {
+                // Allow immediate streaming test even before download finishes
+                toPlay = AdhanCache.streamSource(voice);
+                isOfflineSource = false;
+                AdhanCache.ensure(this, voice);
+                Ui.toast(this, getString(R.string.adhan_downloading_voice,
+                        Muezzins.voiceLabel(voice)));
+            } else {
+                AdhanCache.ensure(this, voice);
+                Ui.toast(this, getString(R.string.adhan_downloading_voice,
+                        Muezzins.voiceLabel(voice)));
+                refreshVoiceViews();
+                restartTicker();
+                return;
+            }
+        }
+
+        if (toPlay == null) {
+            Ui.toast(this, R.string.error_network);
             return;
         }
+
         triedFallback = false;
+        final boolean wasOffline = isOfflineSource;
         try {
             test = new MediaPlayer();
             test.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            setTestSource(offline);
+            setTestSource(toPlay);
             test.setOnPreparedListener(MediaPlayer::start);
             test.setOnCompletionListener(mp -> stopTest());
             test.setOnErrorListener((mp, w, e) -> {
+                // First try fallback URL, then try offline if we were streaming
                 String fb = Muezzins.fallbackFor(voice);
                 if (fb != null && !triedFallback) {
                     triedFallback = true;
@@ -351,14 +373,24 @@ public class AdhanSettingsActivity extends BaseActivity {
                     try {
                         setTestSource(fb);
                         mp.prepareAsync();
-                    } catch (Exception ignored) {
-                        Ui.toast(this, R.string.error_network);
-                        stopTest();
-                    }
-                } else {
-                    Ui.toast(this, R.string.error_network);
-                    stopTest();
+                        return true;
+                    } catch (Exception ignored) {}
                 }
+                if (!wasOffline) {
+                    // streaming failed → try offline if now available
+                    String off = AdhanCache.offlineSource(AdhanSettingsActivity.this, voice);
+                    if (off != null) {
+                        mp.reset();
+                        try {
+                            setTestSource(off);
+                            mp.prepareAsync();
+                            return true;
+                        } catch (Exception ignored) {}
+                    }
+                }
+                Ui.toast(AdhanSettingsActivity.this,
+                        Net.online(AdhanSettingsActivity.this) ? R.string.error_network : R.string.error_generic);
+                stopTest();
                 return true;
             });
             test.prepareAsync();
