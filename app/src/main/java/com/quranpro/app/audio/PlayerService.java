@@ -66,7 +66,7 @@ public class PlayerService extends MediaSessionService {
         inst = this;
 
         DefaultHttpDataSource.Factory http = new DefaultHttpDataSource.Factory()
-                .setUserAgent("QuranPro/1.5 (Android)")
+                .setUserAgent(App.userAgent())
                 .setConnectTimeoutMs(20000)
                 .setReadTimeoutMs(30000)
                 .setAllowCrossProtocolRedirects(true);

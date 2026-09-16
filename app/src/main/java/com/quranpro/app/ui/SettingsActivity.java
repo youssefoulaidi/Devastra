@@ -10,6 +10,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.quranpro.app.App;
 import com.quranpro.app.R;
 import com.quranpro.app.data.Store;
 import com.quranpro.app.util.LangHelper;
@@ -85,10 +86,7 @@ public class SettingsActivity extends BaseActivity {
         findViewById(R.id.row_about).setOnClickListener(v ->
                 InfoActivity.open(this, InfoActivity.PAGE_ABOUT));
 
-        String ver = "1.3";
-        try {
-            ver = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-        } catch (Exception ignored) {}
+        String ver = App.versionName();
         ((TextView) findViewById(R.id.t_version)).setText(getString(R.string.version, ver));
     }
 

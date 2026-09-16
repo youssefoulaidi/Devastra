@@ -23,6 +23,7 @@ import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.quranpro.app.App;
 import com.quranpro.app.R;
 import com.quranpro.app.util.ImageLoader;
 
@@ -69,7 +70,7 @@ public class VideoPlayerActivity extends BaseActivity {
         if (thumbs == null) thumbs = new ArrayList<>();
 
         DefaultHttpDataSource.Factory http = new DefaultHttpDataSource.Factory()
-                .setUserAgent("QuranPro/1.0 (Android)")
+                .setUserAgent(App.userAgent())
                 .setAllowCrossProtocolRedirects(true);
         player = new ExoPlayer.Builder(this)
                 .setMediaSourceFactory(new DefaultMediaSourceFactory(

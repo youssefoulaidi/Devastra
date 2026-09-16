@@ -42,7 +42,10 @@ public final class AdhanCache {
     private static final long MIN_CACHE_BYTES = 40L * 1024L;
     private static final long MAX_BYTES = 40L * 1024L * 1024L;
     private static final int ATTEMPTS = 2;
-    private static final String UA = "Mozilla/5.0 (Linux; Android 13) QuranPro/1.5";
+    /** Browser-like UA; the app version comes from the installed package, not a literal. */
+    private static String ua() {
+        return "Mozilla/5.0 (Linux; Android 13) " + App.userAgent();
+    }
 
     private static volatile boolean migrated;
 
@@ -269,7 +272,7 @@ public final class AdhanCache {
             cn.setInstanceFollowRedirects(false);
             cn.setConnectTimeout(20_000);
             cn.setReadTimeout(45_000);
-            cn.setRequestProperty("User-Agent", UA);
+            cn.setRequestProperty("User-Agent", ua());
             cn.setRequestProperty("Accept", "*/*");
             int code = cn.getResponseCode();
             if (code == 301 || code == 302 || code == 303 || code == 307 || code == 308) {

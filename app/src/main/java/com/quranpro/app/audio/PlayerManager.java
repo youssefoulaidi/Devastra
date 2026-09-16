@@ -60,7 +60,11 @@ public final class PlayerManager {
         List<Track> tracks = new ArrayList<>(ids.size());
         for (int id : ids) {
             Models.Surah qs = QuranMeta.byId(id);
-            String name = qs == null ? ("سورة " + id) : ("سورة " + qs.ar);
+            // Localised like everywhere else in the app ("سورة %1$s" / "Surah %1$s") —
+            // this title ends up in the media notification, so it must follow the
+            // in-app language instead of being hard-coded in Arabic.
+            String name = app.getString(com.quranpro.app.R.string.read_title,
+                    qs == null ? String.valueOf(id) : qs.ar);
             String sub = reciterName + (mName.isEmpty() ? "" : " • " + mName);
             // Prefer the downloaded copy so playback keeps working without internet.
             String offline = DownloadHelper.localPath(app, reciterIdFor(app, moshaf.server),
@@ -83,8 +87,11 @@ public final class PlayerManager {
 
     public static void playTafsir(Context ctx, String tafsirName, int suraId,
                                   String suraName, String url) {
+        Context app = ctx.getApplicationContext();
         Models.Surah qs = QuranMeta.byId(suraId);
-        String title = qs == null ? suraName : ("تفسير سورة " + qs.ar);
+        String label = qs == null ? suraName
+                : app.getString(com.quranpro.app.R.string.read_title, qs.ar);
+        String title = app.getString(com.quranpro.app.R.string.tafsir_title) + " — " + label;
         List<Track> tracks = new ArrayList<>();
         tracks.add(new Track(Track.KIND_TAFSIR, suraId, title, tafsirName,
                 url, null, url, "tafsir|" + url));

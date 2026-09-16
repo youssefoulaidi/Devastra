@@ -62,7 +62,7 @@ public final class ImageLoader {
                     HttpURLConnection cn = (HttpURLConnection) new URL(url).openConnection();
                     cn.setConnectTimeout(15000);
                     cn.setReadTimeout(20000);
-                    cn.setRequestProperty("User-Agent", "QuranPro/1.0 (Android)");
+                    cn.setRequestProperty("User-Agent", App.userAgent());
                     cn.connect();
                     if (cn.getResponseCode() >= 200 && cn.getResponseCode() < 300) {
                         InputStream in = cn.getInputStream();

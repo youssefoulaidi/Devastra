@@ -109,7 +109,7 @@ public final class Api {
             cn = (HttpURLConnection) new URL(url).openConnection();
             cn.setConnectTimeout(20000);
             cn.setReadTimeout(30000);
-            cn.setRequestProperty("User-Agent", "QuranPro/1.0 (Android)");
+            cn.setRequestProperty("User-Agent", App.userAgent());
             cn.setRequestProperty("Accept", "application/json");
             cn.connect();
             int code = cn.getResponseCode();
