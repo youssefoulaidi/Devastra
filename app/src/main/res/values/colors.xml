@@ -1,9 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand: emerald + gold -->
+    <!-- Default Brand: emerald + gold -->
     <color name="brand">#0B7A55</color>
     <color name="brand_dark">#095C41</color>
     <color name="brand_light">#E3F2EA</color>
+
+    <!-- Blue -->
+    <color name="brand_blue">#2563EB</color>
+    <color name="brand_blue_dark">#1E40AF</color>
+    <color name="brand_blue_light">#DBEAFE</color>
+
+    <!-- Brown -->
+    <color name="brand_brown">#795548</color>
+    <color name="brand_brown_dark">#4E342E</color>
+    <color name="brand_brown_light">#EFEBE9</color>
+
+    <!-- Purple -->
+    <color name="brand_purple">#7C3AED</color>
+    <color name="brand_purple_dark">#5B21B6</color>
+    <color name="brand_purple_light">#EDE9FE</color>
+
+    <!-- Teal -->
+    <color name="brand_teal">#0D9488</color>
+    <color name="brand_teal_dark">#0F766E</color>
+    <color name="brand_teal_light">#CCFBF1</color>
+
+    <!-- Crimson / Red -->
+    <color name="brand_red">#DC2626</color>
+    <color name="brand_red_dark">#991B1B</color>
+    <color name="brand_red_light">#FEE2E2</color>
+
     <color name="gold">#C9A227</color>
     <color name="gold_light">#F4E9C8</color>
     <color name="bg">#F5F8F6</color>

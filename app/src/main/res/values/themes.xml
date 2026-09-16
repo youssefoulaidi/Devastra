@@ -15,6 +15,41 @@
         <item name="bottomNavigationStyle">@style/Widget.QuranPro.BottomNav</item>
     </style>
 
+    <style name="Theme.QuranPro.Blue" parent="Theme.QuranPro">
+        <item name="colorPrimary">@color/brand_blue</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/brand_blue_light</item>
+        <item name="colorOnPrimaryContainer">@color/brand_blue_dark</item>
+    </style>
+
+    <style name="Theme.QuranPro.Brown" parent="Theme.QuranPro">
+        <item name="colorPrimary">@color/brand_brown</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/brand_brown_light</item>
+        <item name="colorOnPrimaryContainer">@color/brand_brown_dark</item>
+    </style>
+
+    <style name="Theme.QuranPro.Purple" parent="Theme.QuranPro">
+        <item name="colorPrimary">@color/brand_purple</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/brand_purple_light</item>
+        <item name="colorOnPrimaryContainer">@color/brand_purple_dark</item>
+    </style>
+
+    <style name="Theme.QuranPro.Teal" parent="Theme.QuranPro">
+        <item name="colorPrimary">@color/brand_teal</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/brand_teal_light</item>
+        <item name="colorOnPrimaryContainer">@color/brand_teal_dark</item>
+    </style>
+
+    <style name="Theme.QuranPro.Red" parent="Theme.QuranPro">
+        <item name="colorPrimary">@color/brand_red</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/brand_red_light</item>
+        <item name="colorOnPrimaryContainer">@color/brand_red_dark</item>
+    </style>
+
     <style name="Widget.QuranPro.BottomNav" parent="Widget.Material3.BottomNavigationView">
         <item name="itemActiveIndicatorStyle">@style/Widget.QuranPro.BottomNavIndicator</item>
     </style>
