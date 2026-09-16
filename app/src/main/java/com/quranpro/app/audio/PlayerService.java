@@ -24,7 +24,9 @@ import androidx.media3.session.MediaSessionService;
 import com.quranpro.app.App;
 import com.quranpro.app.R;
 import com.quranpro.app.ui.PlayerActivity;
+import com.quranpro.app.util.AudioCheck;
 import com.quranpro.app.util.DownloadHelper;
+import com.quranpro.app.util.Net;
 import com.quranpro.app.util.Ui;
 
 import java.io.File;
@@ -85,7 +87,53 @@ public class PlayerService extends MediaSessionService {
             @Override
             public void onPlayerError(PlaybackException error) {
                 if (recoverCurrentItem(error)) return;
-                App.post(() -> Ui.toast(getApplicationContext(), R.string.error_network));
+
+                // If an offline file exists, never show \"no internet\" — the user explicitly downloaded it.
+                int idx = player == null ? -1 : player.getCurrentMediaItemIndex();
+                String offlinePath = null;
+                if (idx >= 0 && idx < queue.size()) {
+                    Track tr = queue.get(idx);
+                    if (tr != null) {
+                        if (tr.filePath != null) {
+                            File fp = new File(tr.filePath);
+                            if (fp.exists() && fp.length() > 1024 && AudioCheck.looksLikeAudio(fp)) {
+                                offlinePath = fp.getAbsolutePath();
+                            }
+                        }
+                        if (offlinePath == null && tr.kind == Track.KIND_SURAH) {
+                            offlinePath = DownloadHelper.offlinePath(getApplicationContext(), tr.server, tr.surahId);
+                            if (offlinePath == null) {
+                                offlinePath = DownloadHelper.localPath(getApplicationContext(),
+                                        reciterId(tr.server), tr.server, tr.surahId);
+                            }
+                        }
+                        // One last forced attempt to play offline if we haven't tried it yet
+                        if (offlinePath != null && !failedLocally.contains(tr.key)) {
+                            try {
+                                File f = new File(offlinePath);
+                                if (f.exists() && AudioCheck.looksLikeAudio(f)) {
+                                    failedLocally.add(tr.key);
+                                    Uri uri = Uri.fromFile(f);
+                                    player.replaceMediaItem(idx, buildItem(tr, uri));
+                                    player.seekTo(idx, Math.max(0, player.getCurrentPosition()));
+                                    player.prepare();
+                                    player.play();
+                                    return;
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                }
+
+                boolean online = Net.online(getApplicationContext());
+                if (offlinePath != null && !online) {
+                    // Offline file exists but still failed — show generic error, not network
+                    App.post(() -> Ui.toast(getApplicationContext(), R.string.error_generic));
+                } else {
+                    App.post(() -> Ui.toast(getApplicationContext(),
+                            online ? R.string.error_network : R.string.error_generic));
+                }
+
                 if (player.hasNextMediaItem()) {
                     player.seekToNextMediaItem();
                     player.prepare();
@@ -195,15 +243,27 @@ public class PlayerService extends MediaSessionService {
         if (uri == null) {
             if (t.filePath != null) {
                 File f = new File(t.filePath);
-                if (f.exists() && f.length() > 1024) uri = Uri.fromFile(f);
+                if (f.exists() && f.length() > 1024 && AudioCheck.looksLikeAudio(f)) {
+                    uri = Uri.fromFile(f);
+                }
             }
             if (uri == null) {
                 String local = t.kind == Track.KIND_SURAH
                         ? DownloadHelper.offlinePath(getApplicationContext(), t.server, t.surahId)
                         : null;
-                uri = local != null && new File(local).exists()
-                        ? Uri.fromFile(new File(local))
-                        : Uri.parse(t.url);
+                if (local == null && t.kind == Track.KIND_SURAH) {
+                    local = DownloadHelper.localPath(getApplicationContext(),
+                            reciterId(t.server), t.server, t.surahId);
+                }
+                if (local != null) {
+                    File lf = new File(local);
+                    if (lf.exists() && lf.length() > 1024 && AudioCheck.looksLikeAudio(lf)) {
+                        uri = Uri.fromFile(lf);
+                    }
+                }
+                if (uri == null) {
+                    uri = Uri.parse(t.url);
+                }
             }
         }
         MediaMetadata md = new MediaMetadata.Builder()
